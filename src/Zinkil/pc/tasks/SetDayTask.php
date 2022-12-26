@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\tasks;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\scheduler\Task;
 use Zinkil\pc\Core;
@@ -16,8 +16,8 @@ class SetDayTask extends Task{
 	public function __construct(Core $plugin){
 		$this->plugin=$plugin;
 	}
-	public function onRun(int $currentTick):void{
-		foreach($this->plugin->getServer()->getLevels() as $level){
+	public function onRun():void{
+		foreach(Server::getInstance()->getWorldManager()->getWorlds() as $level){
 			$level->setTime(1000);
 			$level->stopTime();
 		}

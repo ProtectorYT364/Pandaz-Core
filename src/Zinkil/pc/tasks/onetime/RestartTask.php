@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\tasks\onetime;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\scheduler\Task;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
@@ -16,7 +16,7 @@ class RestartTask extends Task{
 	public function __construct(Core $plugin){
 		$this->plugin=$plugin;
 	}
-	public function onRun(int $currentTick):void{
+	public function onRun():void{
 		$count=count($this->plugin->getServer()->getOnlinePlayers());
 		if($count > 0){
 			foreach($this->plugin->getServer()->getOnlinePlayers() as $player){

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\duels;
 
-use pocketmine\level\Location;
-use pocketmine\level\Position;
+use pocketmine\entity\Location;
+use pocketmine\world\Position;
 use pocketmine\plugin\ScriptPluginLoader;
 use Zinkil\pc\duels\PracticeArena;
 use Zinkil\pc\Core;

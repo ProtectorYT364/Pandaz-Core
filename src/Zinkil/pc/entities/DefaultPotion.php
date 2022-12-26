@@ -17,11 +17,11 @@ use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\entity\ProjectileHitEntityEvent;
 use pocketmine\event\entity\ProjectileHitBlockEvent;
 use pocketmine\event\entity\ProjectileHitEvent;
-use pocketmine\level\Level;
+use pocketmine\world\World;
 use pocketmine\network\mcpe\protocol\LevelEventPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\item\Potion as ItemPotion;
 use pocketmine\utils\Random;
@@ -120,7 +120,7 @@ class DefaultPotion extends Projectile{
 		$this->level->broadcastLevelEvent($this, LevelEventPacket::EVENT_PARTICLE_SPLASH, Color::mix(...$colors)->toARGB());
 		$this->level->broadcastLevelSoundEvent($this, LevelSoundEventPacket::SOUND_GLASS);
 		if($hasEffects){
-			foreach($this->getLevel()->getNearbyEntities($this->getBoundingBox()->expand(1.7, 5.7, 1.7)) as $nearby){
+			foreach($this->getWorld()->getNearbyEntities($this->getBoundingBox()->expand(1.7, 5.7, 1.7)) as $nearby){
 				if($nearby instanceof Player and $nearby->isAlive()){
 					$multiplier= 1 - (sqrt($nearby->distanceSquared($this)) / 6.15);
 					if($multiplier > 0.578) $multiplier=0.578;
@@ -156,7 +156,7 @@ class DefaultPotion extends Projectile{
 	public function entityBaseTick(int $tickDiff=1):bool{
 		$hasUpdate=parent::entityBaseTick($tickDiff);
 		$owner=$this->getOwningEntity();
-		//$this->getLevel()->addParticle(new FlameParticle($this->asVector3()->add(0,0.5,0)), $this->getLevel()->getPlayers());
+		//$this->getWorld()->addParticle(new FlameParticle($this->asVector3()->add(0,0.5,0)), $this->getWorld()->getPlayers());
 		if($this->isCollided){
 			$this->flagForDespawn();
 		}

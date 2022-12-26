@@ -8,11 +8,11 @@ use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 use pocketmine\block\Bed;
 use pocketmine\block\Liquid;
-use pocketmine\level\Position;
+use pocketmine\world\Position;
 use pocketmine\math\Vector3;
 use pocketmine\tile\Tile;
 use pocketmine\tile\Bed as TileBed;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
@@ -126,7 +126,7 @@ class BotDuelGroup{
 			$this->endDuel();
 			return;
 		}
-		//if(!$this->isBotOnline() or $this->getBot()===null or $this->getBot()->getLevel()===null){
+		//if(!$this->isBotOnline() or $this->getBot()===null or $this->getBot()->getWorld()===null){
 		if(!$this->isBotOnline() or $this->getBot()===null){
 			$this->setResults($this->playerName, $this->botName);
 			//return;
@@ -136,7 +136,7 @@ class BotDuelGroup{
 		}
 		$arena=$this->getArena();
 		$arenaname=$this->getArenaName();
-		$duellevel=$arena->getLevel();
+		$duellevel=$arena->getWorld();
 		$player=$this->getPlayer();
 		$bot=$this->getBot();
 		if($this->isLoadingDuel()){
@@ -146,10 +146,10 @@ class BotDuelGroup{
 				$second=self::MAX_COUNTDOWN_SEC - Utils::ticksToSeconds($this->countdownTick);
 				
 				$this->initializePlayers(0);
-				if($player->getLevel()->getName()!=$duellevel->getName()){
+				if($player->getWorld()->getName()!=$duellevel->getName()){
 					$player->teleport($arena->getPlayerPos());
 				}
-				if($bot->getLevel()->getName()!=$duellevel->getName()){
+				if($bot->getWorld()->getName()!=$duellevel->getName()){
 					$bot->teleport($arena->getOpponentPos());
 				}
 				if($second !== 0){
@@ -226,7 +226,7 @@ class BotDuelGroup{
 		$loser=Utils::getPlayer($this->loserName);
 		if($player instanceof CPlayer) $player->sendTo(0, true);
 		if($player instanceof CPlayer) $player->setTagged(false);
-		Utils::clearEntities($this->arena->getLevel(), true, true);
+		Utils::clearEntities($this->arena->getWorld(), true, true);
 		$this->plugin->getDuelHandler()->endBotDuel($this);
 		$this->plugin->getArenaHandler()->setArenaOpen($this->arenaName);
 	}
@@ -307,19 +307,7 @@ class BotDuelGroup{
 			}
 			if($this->isBotOnline()){
 				if($this->isBotOnline()) $this->getBot()->setDeactivated(true);
-			}
-			break;
-			case 1:
-			if($this->isPlayerOnline()){
-				$player=$this->getPlayer();
-				$player->setImmobile(false);
-				Kits::sendMatchKit($player, "NoDebuff");
-			}
-			if($this->isBotOnline()){
-				if($this->isBotOnline()) $this->getBot()->setDeactivated(false);
 				if($this->isBotOnline()) Kits::sendMatchKit($this->getBot(), "NoDebuff");
-				if($this->isBotOnline()) $this->getBot()->getInventory()->setItemInHand(Item::get(Item::DIAMOND_SWORD, 0, 1));
-				if($this->isBotOnline()) $this->getBot()->getInventory()->sendHeldItem($this->getBot()->getViewers());
 			}
 			break;
 			case 1:

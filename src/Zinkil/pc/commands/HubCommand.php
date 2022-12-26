@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
-use pocketmine\command\PluginCommand;
+use pocketmine\player\Player;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
 use Zinkil\pc\Utils;
 
-class HubCommand extends PluginCommand{
+class HubCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("hub", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bTeleport to spawn");
-		$this->setAliases(["lobby","spawn"]);
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+		    {
+		  parent::__construct($name, $description);
+		  parent::setAliases(["lobby", "hub", "spawn"]);
+		    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player instanceof Player){
 			return;

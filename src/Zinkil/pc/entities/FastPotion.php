@@ -8,6 +8,8 @@ use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
 use pocketmine\entity\Attribute;
+use pocketmine\entity\EntitySizeInfo;
+use pocketmine\data\bedrock\LegacyEntityIdToStringIdMap;
 use pocketmine\entity\projectile\Throwable;
 use pocketmine\entity\projectile\Projectile;
 use pocketmine\event\entity\EntityDamageByChildEntityEvent;
@@ -17,11 +19,11 @@ use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\entity\ProjectileHitEntityEvent;
 use pocketmine\event\entity\ProjectileHitBlockEvent;
 use pocketmine\event\entity\ProjectileHitEvent;
-use pocketmine\level\Level;
+use pocketmine\world\World;
 use pocketmine\network\mcpe\protocol\LevelEventPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\item\Potion as ItemPotion;
 use pocketmine\utils\Random;
@@ -43,18 +45,18 @@ class FastPotion extends Projectile{
 	
 	private $hasSplashed=false;
 	
-	public function __construct(Level $level, CompoundTag $nbt, ?Entity $owner=null){
+	public function __construct(World $level, CompoundTag $nbt, ?Entity $owner=null){
 		parent::__construct($level, $nbt, $owner);
 		if($owner===null) return;
 		$this->setPosition($this->add(0, $owner->getEyeHeight()));
 		//$this->handleMotion($this->motion->x, $this->motion->y, $this->motion->z, -0.45, 0);
 		$this->handleMotion($this->motion->x, $this->motion->y, $this->motion->z, -0.43, 0);
 	}
-	protected function initEntity():void{
+	protected function initEntity(CompoundTag $nbt):void{
 		parent::initEntity();
 		$this->setPotionId($this->namedtag->getShort("PotionId", 22));
 	}
-	public function saveNBT():void{
+	public function saveNBT():CompoundTag{
 		parent::saveNBT();
 		$this->namedtag->setShort("PotionId", $this->getPotionId());
 	}
@@ -120,7 +122,7 @@ class FastPotion extends Projectile{
 		$this->level->broadcastLevelEvent($this, LevelEventPacket::EVENT_PARTICLE_SPLASH, Color::mix(...$colors)->toARGB());
 		$this->level->broadcastLevelSoundEvent($this, LevelSoundEventPacket::SOUND_GLASS);
 		if($hasEffects){
-			foreach($this->getLevel()->getNearbyEntities($this->getBoundingBox()->expand(1.7, 5.7, 1.7)) as $nearby){
+			foreach($this->getWorld()->getNearbyEntities($this->getBoundingBox()->expand(1.7, 5.7, 1.7)) as $nearby){
 				if($nearby instanceof Player and $nearby->isAlive()){
 					$multiplier= 1 - (sqrt($nearby->distanceSquared($this)) / 6.15);
 					if($multiplier > 0.578) $multiplier=0.578;
@@ -156,14 +158,11 @@ class FastPotion extends Projectile{
 	public function entityBaseTick(int $tickDiff=1):bool{
 		$hasUpdate=parent::entityBaseTick($tickDiff);
 		$owner=$this->getOwningEntity();
-		//$this->getLevel()->addParticle(new FlameParticle($this->asVector3()->add(0,0.5,0)), $this->getLevel()->getPlayers());
+		//$this->getWorld()->addParticle(new FlameParticle($this->asVector3()->add(0,0.5,0)), $this->getWorld()->getPlayers());
 		if($this->isCollided){
 			$this->flagForDespawn();
 		}
 		return $hasUpdate;
-	}
-	public function close():void{
-		parent::close();
 	}
 	public function applyGravity():void{
 		if($this->isUnderwater()){
@@ -172,4 +171,20 @@ class FastPotion extends Projectile{
 			parent::applyGravity();
 		}
 	}
+    #Temp Disable This Function Cuz of Error Below 👇
+/*Error: Cannot override final method pocketmine\entity\Entity::close()
+#File: plugins/pandaz_api4-main/src/Zinkil/pc/entities/FastPotion
+Line: 165
+Type: E_COMPILE_ERROR*/
+    
+    /*public function close():void{
+		parent::close();
+	}*/
+    public static function getNetworkTypeId(): string
+    {
+        return LegacyEntityIdToStringIdMap::getInstance()->legacyToString(self::NETWORK_ID);
+    }
+    protected function getInitialSizeInfo() : EntitySizeInfo {
+ return new EntitySizeInfo(0.50, 0.50); 
+  }
 }

@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
-use pocketmine\entity\Skin;
-use pocketmine\command\PluginCommand;
 use pocketmine\command\CommandSender;
+use pocketmine\command\Command;
+use pocketmine\player\Player;
+use pocketmine\entity\skin;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
 use Zinkil\pc\Utils;
 
-class DisguiseCommand extends PluginCommand{
+class DisguiseCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("disguise", $plugin);
-		$this->plugin=$plugin;
-		$this->setPermission("pc.command.disguise");
-		$this->setAliases(["disg"]);
-	}
-	public function execute(CommandSender $player, string $commandLabel, array $args){
+	public function __construct(string $name, Translatable|string $description = "")
+    {
+        parent::__construct($name, $description);
+        parent::setAliases(["disguise"]);
+    }
+    public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player instanceof Player){
 			return;
 		}

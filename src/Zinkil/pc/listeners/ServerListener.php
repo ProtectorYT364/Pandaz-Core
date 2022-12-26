@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Zinkil\pc\listeners;
 
 use pocketmine\event\Listener;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\event\server\QueryRegenerateEvent;
 use pocketmine\event\plugin\PluginDisableEvent;
 use Zinkil\pc\Core;

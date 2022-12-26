@@ -8,12 +8,12 @@ use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 use pocketmine\block\Bed;
 use pocketmine\block\Liquid;
-use pocketmine\level\Position;
+use pocketmine\world\Position;
 use pocketmine\math\Vector3;
 use pocketmine\tile\Tile;
 use pocketmine\tile\Bed as TileBed;
 use pocketmine\item\SplashPotion as ItemSplashPotion;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
@@ -172,7 +172,7 @@ class DuelGroup{
 		}
 		$arena=$this->getArena();
 		$arenaname=$this->getArenaName();
-		$duellevel=$arena->getLevel();
+		$duellevel=$arena->getWorld();
 		$player=$this->getPlayer();
 		$opponent=$this->getOpponent();
 		$queue=$this->getQueue();
@@ -183,10 +183,10 @@ class DuelGroup{
 			if($this->countdownTick % 20 === 0 and $this->countdownTick !== 0){
 				$second=self::MAX_COUNTDOWN_SEC - Utils::ticksToSeconds($this->countdownTick);
 				
-				if($player->getLevel()->getName()!=$duellevel->getName()){
+				if($player->getWorld()->getName()!=$duellevel->getName()){
 					$player->teleport($arena->getPlayerPos());
 				}
-				if($opponent->getLevel()->getName()!=$duellevel->getName()){
+				if($opponent->getWorld()->getName()!=$duellevel->getName()){
 					$opponent->teleport($arena->getOpponentPos());
 				}
 				
@@ -311,7 +311,7 @@ class DuelGroup{
 				}
 			}
 		}
-		Utils::clearEntities($this->arena->getLevel(), true, true);
+		Utils::clearEntities($this->arena->getWorld(), true, true);
 		Core::getInstance()->getDuelHandler()->endDuel($this);
 		Core::getInstance()->getArenaHandler()->setArenaOpen($this->arenaName);
 	}
@@ -636,7 +636,7 @@ class DuelGroup{
 		$count=0;
 		$blAgainst=$against->asVector3();
 		if($this->isPlacedBlock($against)){
-			$level=$this->arena->getLevel();
+			$level=$this->arena->getWorld();
 			$testPos=$blAgainst->subtract(0, 1, 0);
 			$belowBlock=$level->getBlock($testPos);
 			$count=$this->countPlaced($belowBlock) + 1;
@@ -661,7 +661,7 @@ class DuelGroup{
 		return $index;
 	}
 	private function clearBlocks():void{
-		$level=$this->getArena()->getLevel();
+		$level=$this->getArena()->getWorld();
 		$size=count($this->blocks);
 		if(!empty($this->blocks)){
 			foreach($this->blocks as $pos){
@@ -671,7 +671,7 @@ class DuelGroup{
 		$this->blocks=[];
 	}
 	private function replaceBeds():void{
-		$level=$this->getArena()->getLevel();
+		$level=$this->getArena()->getWorld();
 		$size=count($this->beds);
 		for($i=0; $i < $size; $i++){
 			$block=$this->beds[$i];//position
@@ -692,7 +692,7 @@ class DuelGroup{
 	}
 	public function removeBlock($x, $y, $z):bool{
 		$result=false;
-		$level=$this->getArena()->getLevel();
+		$level=$this->getArena()->getWorld();
 		$pos=new Vector3($x, $y, $z);
 		$block=$level->getBlock($pos);
 		if($this->isPlacedBlock($block) or $this->isBed($block)){

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\network\mcpe\protocol\GameRulesChangedPacket;
 use pocketmine\network\mcpe\protocol\PlayerListPacket;
@@ -268,11 +268,11 @@ class StaffUtils{
 				break;
 			}
 		});
-		$lobby=Core::getInstance()->getServer()->getLevelByName("lobby");
-		$nodebuff=Core::getInstance()->getServer()->getLevelByName("nodebuff");
-		$gapple=Core::getInstance()->getServer()->getLevelByName("gapple");
-		$combo=Core::getInstance()->getServer()->getLevelByName("combo");
-		$battlefield=Core::getInstance()->getServer()->getLevelByName("battlefield");
+		$lobby=Core::getInstance()->getServer()->getWorldManager()->getWorldByName("lobby");
+		$nodebuff=Core::getInstance()->getServer()->getWorldManager()->getWorldByName("nodebuff");
+		$gapple=Core::getInstance()->getServer()->getWorldManager()->getWorldByName("gapple");
+		$combo=Core::getInstance()->getServer()->getWorldManager()->getWorldByName("combo");
+		$battlefield=Core::getInstance()->getServer()->getWorldManager()->getWorldByName("battlefield");
 		if(!Core::getInstance()->getServer()->isLevelLoaded("nodebuff")){
 			$details1="Players: 0 Status: §cOffline";
 			$c1="offline";

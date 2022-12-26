@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Zinkil\pc\listeners;
 
 use pocketmine\event\Listener;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\item\Item;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
@@ -38,11 +38,12 @@ use pocketmine\block\TrapDoor;
 use pocketmine\block\TrappedChest;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\event\entity\EntityLevelChangeEvent;
+use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\player\PlayerExhaustEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerMoveEvent;
-use pocketmine\level\Position;
+use pocketmine\player\GameMode;
+use pocketmine\world\Position;
 use pocketmine\math\Vector3;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\EnchantmentInstance;
@@ -67,9 +68,9 @@ class WorldListener implements Listener{
 		$player=null;
 		$transaction=$event->getTransaction();
 		$player=$transaction->getSource();
-		$level=$player->getLevel()->getName();
+		$level=$player->getWorld()->getName();
 		if($level==$this->plugin->getLobby()){
-			$event->setCancelled();
+			$event->cancel();
 		}
 	}
 	public function onInteract(PlayerInteractEvent $event){
@@ -77,21 +78,22 @@ class WorldListener implements Listener{
 		$b=$event->getBlock();
 		$item=$event->getItem();
 		if($b instanceof Anvil or $b instanceof Bed or $b instanceof BrewingStand or $b instanceof BurningFurnace or $b instanceof Button or $b instanceof Chest or $b instanceof CraftingTable or $b instanceof Door or $b instanceof EnchantingTable or $b instanceof EnderChest or $b instanceof FenceGate or $b instanceof Furnace or $b instanceof IronDoor or $b instanceof IronTrapDoor or $b instanceof Lever or $b instanceof TrapDoor or $b instanceof TrappedChest){
-			$event->setCancelled();
+			$event->cancel();
 		}
 	}
-	public function onLevelChange(EntityLevelChangeEvent $event){
+	public function onLevelChange(EntityTeleportEvent $event){
 		$player=$event->getEntity();
+        if($event->getTo()->getWorld() !== $event->getFrom()->getWorld())
 		if(!$player instanceof Player) return;
-		if($player->getGamemode()===Player::CREATIVE) return;
+		if($player->getGamemode()===GameMode::CREATIVE()) return;
 		$duel=null;
 		if($this->plugin->getDuelHandler()->isInDuel($player)) $duel=$this->plugin->getDuelHandler()->getDuel($player);
 		if($this->plugin->getDuelHandler()->isInBotDuel($player)) $duel=$this->plugin->getDuelHandler()->getBotDuel($player);
 		if($duel===null) return;
 		if($duel->isDuelRunning()){
-			$event->setCancelled();
+			$event->cancel();
 		}
-		$level=$player->getLevel()->getName();
+		$level=$player->getWorld()->getName();
 		if($level!=="lobby"){
 			$player->setFlying(false);
 			$player->setAllowFlight(false);
@@ -100,13 +102,13 @@ class WorldListener implements Listener{
 	}
 	public function onLeaveDecay(LeavesDecayEvent $event){
 		$block=$event->getBlock();
-		$level=$block->getLevel()->getName();
-		$event->setCancelled();
+		$level=$block->getWorld()->getName();
+		$event->cancel();
 	}
 	public function onBurn(BlockBurnEvent $event){
 		$block=$event->getBlock();
-		$level=$block->getLevel()->getName();
-		$event->setCancelled();
+		$level=$block->getWorld()->getName();
+		$event->cancel();
 	}
 	public function onPlace(BlockPlaceEvent $event){
 		$player=$event->getPlayer();
@@ -118,10 +120,10 @@ class WorldListener implements Listener{
 				if($toohigh===false){
 					$duel->addBlock($block->getX(), $block->getY(), $block->getZ());
 				}else{
-					$event->setCancelled();
+					$event->cancel();
 				}
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 			return;
 		}
@@ -132,20 +134,20 @@ class WorldListener implements Listener{
 				if($toohigh===false){
 					$pduel->addBlock($block->getX(), $block->getY(), $block->getZ());
 				}else{
-					$event->setCancelled();
+					$event->cancel();
 				}
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 			return;
 		}
 		if($player->getName()!="ZINKIL YT"){
-			$event->setCancelled();
+			$event->cancel();
 		}
 		if($player->getGamemode()==1 and $player->hasPermission("pc.can.build")){
 			return;
 		}else{
-			$event->setCancelled();
+			$event->cancel();
 		}
 	}
 	public function onBreak(BlockBreakEvent $event){
@@ -157,7 +159,7 @@ class WorldListener implements Listener{
 			if($duel!==null and $duel->isDuelRunning() and $duel->canBuild()){
 				if($duel->isBedwars()){
 					if($duel->removeBlock($block->getX(), $block->getY(), $block->getZ())===false){
-						$event->setCancelled();
+						$event->cancel();
 					}else{
 						if($block instanceof Bed){
 							$event->setDrops([]);
@@ -167,13 +169,13 @@ class WorldListener implements Listener{
 					}
 				}else{
 					if($duel->removeBlock($block->getX(), $block->getY(), $block->getZ())===false){
-						$event->setCancelled();
+						$event->cancel();
 					}else{
 						if(in_array($vector3, $duel->blocks)) $duel->removeBlock($block->getX(), $block->getY(), $block->getZ());
 					}
 				}
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 			return;
 		}
@@ -181,22 +183,22 @@ class WorldListener implements Listener{
 			$pduel=$this->plugin->getDuelHandler()->getPartyDuel($player);
 			if($pduel!==null and $pduel->isDuelRunning() and $pduel->canBuild()){
 				if($pduel->removeBlock($block->getX(), $block->getY(), $block->getZ())===false){
-					$event->setCancelled();
+					$event->cancel();
 				}else{
 					if(in_array($vector3, $pduel->blocks)) $pduel->removeBlock($block->getX(), $block->getY(), $block->getZ());
 				}
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 			return;
 		}
 		if($player->getName()!="ZINKIL YT"){
-			$event->setCancelled();
+			$event->cancel();
 		}
 		if($player->getGamemode()==1 and $player->hasPermission("pc.can.break")){
 			return;
 		}else{
-			$event->setCancelled();
+			$event->cancel();
 		}
 	}
 	public function onBlockSpread(BlockSpreadEvent $event):void{
@@ -204,7 +206,7 @@ class WorldListener implements Listener{
 		$block=$event->getBlock();
 		$arena=$this->plugin->getArenaHandler()->getArenaClosestTo($block);
 		if($arena===null){
-			$event->setCancelled();
+			$event->cancel();
 			return;
 		}
 		$this->plugin->getDuelHandler()->isArenaInUse($arena->getName());
@@ -214,14 +216,14 @@ class WorldListener implements Listener{
 			if($duel->isDuelRunning()){
 				$duel->addBlock($block->getX(), $block->getY(), $block->getZ());
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 		}
 		if($pduel!==null){
 			if($pduel->isDuelRunning()){
 				$pduel->addBlock($block->getX(), $block->getY(), $block->getZ());
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 		}
 	}
@@ -230,11 +232,11 @@ class WorldListener implements Listener{
 		$block=$event->getBlock();
 		$arena=$this->plugin->getArenaHandler()->getArenaClosestTo($block);
 		if($state instanceof Dirt){
-			$event->setCancelled();
+			$event->cancel();
 			return;
 		}
 		if($arena===null){
-			$event->setCancelled();
+			$event->cancel();
 			return;
 		}
 		$this->plugin->getDuelHandler()->isArenaInUse($arena->getName());
@@ -244,14 +246,14 @@ class WorldListener implements Listener{
 			if($duel->isDuelRunning()){
 				$duel->addBlock($block->getX(), $block->getY(), $block->getZ());
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 		}
 		if($pduel!==null){
 			if($pduel->isDuelRunning()){
 				$pduel->addBlock($block->getX(), $block->getY(), $block->getZ());
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 		}
 	}
@@ -259,10 +261,10 @@ class WorldListener implements Listener{
 		$player=$event->getPlayer();
 		$block=$event->getBlockClicked();
 		$item=$event->getItem();
-		$level=$player->getLevel()->getName();
+		$level=$player->getWorld()->getName();
 		if($level==$this->plugin->getLobby()){
 			if(!$player->isCreative()){
-				$event->setCancelled();
+				$event->cancel();
 			}
 		}
 		if($this->plugin->getDuelHandler()->isInDuel($player)){
@@ -275,13 +277,13 @@ class WorldListener implements Listener{
 				cancels the event completely so keep DISABLED
 
 				if($duel->removeBlock($block)===false){
-					$event->setCancelled();
+					$event->cancel();
 					$player->sendMessage("block isnt part of duel");
 				}else{*/
 					$duel->removeBlock($block->getX(), $block->getY(), $block->getZ());
 				//}
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 			return;
 		}
@@ -290,7 +292,7 @@ class WorldListener implements Listener{
 			if($pduel!==null and $pduel->isDuelRunning() and $pduel->canBuild()){
 				$pduel->removeBlock($block->getX(), $block->getY(), $block->getZ());
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 			return;
 		}
@@ -299,10 +301,10 @@ class WorldListener implements Listener{
 		$player=$event->getPlayer();
 		$block=$event->getBlockClicked();
 		$item=$event->getItem();
-		$level=$player->getLevel()->getName();
+		$level=$player->getWorld()->getName();
 		if($level==$this->plugin->getLobby()){
 			if(!$player->isCreative()){
-				$event->setCancelled();
+				$event->cancel();
 			}
 		}
 		if($this->plugin->getDuelHandler()->isInDuel($player)){
@@ -312,10 +314,10 @@ class WorldListener implements Listener{
 				if($toohigh===false){
 					$duel->addBlock($block->getX(), $block->getY(), $block->getZ());
 				}else{
-					$event->setCancelled();
+					$event->cancel();
 				}
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 			return;
 		}
@@ -326,19 +328,19 @@ class WorldListener implements Listener{
 				if($toohigh===false){
 					$pduel->addBlock($block->getX(), $block->getY(), $block->getZ());
 				}else{
-					$event->setCancelled();
+					$event->cancel();
 				}
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 			}
 			return;
 		}
 	}
 	public function onExhaust(PlayerExhaustEvent $event){
 		$player=$event->getPlayer();
-		$level=$player->getLevel()->getName();
+		$level=$player->getWorld()->getName();
 		if($level==$this->plugin->getLobby()){
-			$event->setCancelled();
+			$event->cancel();
 		}
 	}
 	public function onPrimedExplosion(ExplosionPrimeEvent $event){

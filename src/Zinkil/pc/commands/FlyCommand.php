@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
-use pocketmine\command\PluginCommand;
+use pocketmine\player\Player;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
-
-class FlyCommand extends PluginCommand{
+class FlyCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("fly", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bEnable or disable fly for a player");
-		$this->setPermission("pc.command.fly");
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+    {
+        parent::__construct($name, $description);
+        parent::setAliases(["fly"]);
+    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player->hasPermission("pc.command.fly")){
 			if($this->plugin->getDatabaseHandler()->voteAccessExists($player)){
@@ -31,7 +30,7 @@ class FlyCommand extends PluginCommand{
 			$player->sendMessage("§cYou cannot use this command while in a duel.");
 			return;
 		}
-		$level=$player->getLevel()->getName();
+		$level=$player->getWorld()->getName();
 		if($level!=="lobby"){
 			$player->sendMessage("§cYou cannot enable fly here.");
 			return;

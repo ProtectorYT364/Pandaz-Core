@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
-use pocketmine\command\PluginCommand;
+use pocketmine\player\Player;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\level\Position;
+use pocketmine\world\Position;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 
-class TpallCommand extends PluginCommand{
+class TpallCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("tpall", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bTeleport all players on the server to you");
-		$this->setPermission("pc.command.tpall");
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+		    {
+		  parent::__construct($name, $description);
+		  parent::setAliases(["tpall"]);
+		    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player->hasPermission("pc.command.tpall")){
 			$player->sendMessage("§cYou cannot execute this command.");
@@ -27,7 +27,7 @@ class TpallCommand extends PluginCommand{
 		}
 		foreach($this->plugin->getServer()->getOnlinePlayers() as $online){
 			if($online->getName()!=$player->getName() and count($this->plugin->getServer()->getOnlinePlayers()) > 1){
-				$online->teleport(new Position($player->getX(), $player->getY(), $player->getZ(), $player->getLevel()));
+				$online->teleport(new Position($player->getX(), $player->getY(), $player->getZ(), $player->getWorld()));
 			}
 		}
 		$player->sendMessage("§aAll players have been teleported to you.");

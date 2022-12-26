@@ -5,7 +5,7 @@ namespace Zinkil\pc\entities;
 
 use pocketmine\entity\Human;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\level\Level;
+use pocketmine\world\World;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\Server;
@@ -19,7 +19,7 @@ class PotionEntity extends Human{
 	public function saveNBT():void{
 		parent::saveNBT();
 	}
-	public function onUpdate(int $currentTick):bool{
+	public function onUpdate():bool{
 		$this->yaw += 2.5;
 		$this->pitch += 5.5;
 		$this->move($this->motion->x, $this->motion->y, $this->motion->z);
@@ -34,6 +34,6 @@ class PotionEntity extends Human{
 		return parent::onUpdate($currentTick);
 	}
     public function attack(EntityDamageEvent $source):void{
-		$source->setCancelled();
+		$source->cancel();
 	}
 }

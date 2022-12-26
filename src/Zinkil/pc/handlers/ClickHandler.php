@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\handlers;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use Zinkil\pc\Core;
 use Zinkil\pc\Utils;

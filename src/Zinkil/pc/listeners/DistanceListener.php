@@ -6,9 +6,9 @@ namespace Zinkil\pc\listeners;
 
 use pocketmine\event\Listener;
 use pocketmine\Server;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\item\Item;
-use pocketmine\level\Location;
+use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
 use pocketmine\event\entity\EntityDamageEvent;
 use Zinkil\pc\Core;
@@ -28,11 +28,11 @@ class DistanceListener implements Listener{
 	public function onEntityDamageByEntity(EntityDamageEvent $event){
 		$player=$event->getEntity();
 		$cause=$event->getCause();
-		$level=$player->getLevel()->getName();
+		$level=$player->getWorld()->getName();
 		switch($cause){
 			case EntityDamageEvent::CAUSE_ENTITY_ATTACK:
 			$damager=$event->getDamager();
-			$dlevel=$damager->getLevel()->getName();
+			$dlevel=$damager->getWorld()->getName();
 			if(!$player instanceof Player) return;
 			if(!$damager instanceof Player) return;
 			if($damager->isCreative()) return;

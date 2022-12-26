@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\tasks\onetime;
 
-use pocketmine\level\Level;
+use pocketmine\world\World;
 use pocketmine\scheduler\Task;
 use Zinkil\pc\Core;
 use Zinkil\pc\Utils;
@@ -17,7 +17,7 @@ class OpenArenaTask extends Task{
 		$this->plugin=$plugin;
 		$this->arena=$arena;
 	}
-	public function onRun(int $currentTick):void{
+	public function onRun():void{
 		$this->plugin->getArenaHandler()->setArenaOpen($this->arena);
 	}
 }

@@ -4,24 +4,23 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\commands;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
-use pocketmine\command\PluginCommand;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 use Zinkil\pc\StaffUtils;
 
-class FreezeCommand extends PluginCommand{
+class FreezeCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("freeze", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bFreeze a player to ask for a screen share");
-		$this->setPermission("pc.command.freeze");
-		$this->setAliases(["ss"]);
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+		    {
+		parent::__construct($name, $description);
+		parent::setAliases(["freeze"]);
+		    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player->hasPermission("pc.command.freeze")){
 			$player->sendMessage("§cYou cannot execute this command.");

@@ -13,7 +13,7 @@ class DatabaseTask extends Task{
 	public function __construct(Core $plugin){
 		$this->plugin=$plugin;
 	}
-	public function onRun(int $tick):void{
+	public function onRun():void{
 		if(Utils::getTimeByHour()=="19:00"){//6pm my time/8pm EST
 		//if(Utils::getTimeByHour()=="19:00"){
 			$queryA=Core::getInstance()->main->query("SELECT * FROM temporary ORDER BY dailykills DESC LIMIT 10;");

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\party;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
-use pocketmine\level\Position;
+use pocketmine\world\Position;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
 use Zinkil\pc\Utils;

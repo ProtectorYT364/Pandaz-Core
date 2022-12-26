@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\duels;
 
-use pocketmine\level\Level;
-use pocketmine\level\Position;
+use pocketmine\world\World;
+use pocketmine\world\Position;
 use Zinkil\pc\Core;
 use Zinkil\pc\Utils;
 
@@ -28,9 +28,9 @@ class PracticeArena{
 		$this->arenaType=$arenaType;
 		$this->build=$canBuild;
 		$this->spawnPos=$center;
-		$this->level=$center->getLevel();
+		$this->level=$center->getWorld();
 	}
-	public function getLevel(){
+	public function getWorld(){
 		return $this->level;
 	}
 	public function getSpawnPosition():Position{

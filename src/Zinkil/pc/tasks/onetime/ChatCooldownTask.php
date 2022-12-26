@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\tasks\onetime;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\scheduler\Task;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
@@ -19,7 +19,7 @@ class ChatCooldownTask extends Task{
 		$this->plugin=$plugin;
 		$this->player=$player;
 	}
-	public function onRun(int $currentTick):void{
+	public function onRun():void{
 		$this->timer--;
 		switch($this->timer){
 			case 3:

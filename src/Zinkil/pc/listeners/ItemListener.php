@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Zinkil\pc\listeners;
 
 use pocketmine\event\Listener;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\item\Item;
 use pocketmine\event\block\BlockPlaceEvent;
@@ -36,7 +36,7 @@ class ItemListener implements Listener{
 		$player=$event->getPlayer();
 		$item=$player->getInventory()->getItemInHand();
 		if($item->getCustomName()=="§l§bUnranked"){
-			$event->setCancelled();
+			$event->cancel();
 			if($player->isInParty()){
 				$player->sendMessage("§bThis is disabled, you are in a party.");
 				return;
@@ -56,7 +56,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bRanked"){
-			$event->setCancelled();
+			$event->cancel();
 			if($player->isInParty()){
 				$player->sendMessage("§bThis is disabled, you are in a party.");
 				return;
@@ -76,7 +76,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bDuels"){
-			$event->setCancelled();
+			$event->cancel();
 			if($player->isInParty()){
 				$player->sendMessage("§bThis is disabled, you are in a party.");
 				return;
@@ -96,7 +96,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bSpectate"){
-			$event->setCancelled();
+			$event->cancel();
 			if($player->isInParty()){
 				$player->sendMessage("§bThis is disabled, you are in a party.");
 				return;
@@ -116,7 +116,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bBot Duels"){
-			$event->setCancelled();
+			$event->cancel();
 			if($player->isInParty()){
 				$player->sendMessage("§bThis is disabled, you are in a party.");
 				return;
@@ -136,7 +136,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bFFA"){
-			$event->setCancelled();
+			$event->cancel();
 			if($player->isInParty()){
 					$player->sendMessage("§bThis is disabled, you are in a party.");
 					return;
@@ -160,7 +160,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bDaily Rankings"){
-			$event->setCancelled();
+			$event->cancel();
 			$cooldown=1;
 			if(!isset($this->formCd[$player->getName()])){
 				$this->formCd[$player->getName()]=time();
@@ -176,7 +176,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bToys"){
-			$event->setCancelled();
+			$event->cancel();
 			if($this->plugin->getDuelHandler()->isPlayerInQueue($player)){
 				$player->sendMessage("§bYou cannot view this while queued.");
 				return;
@@ -201,7 +201,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bParty"){
-			$event->setCancelled();
+			$event->cancel();
 			$cooldown=1;
 			if(!isset($this->formCd[$player->getName()])){
 				$this->formCd[$player->getName()]=time();
@@ -217,7 +217,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bCosmetics"){
-			$event->setCancelled();
+			$event->cancel();
 			$cooldown=1;
 			if(!isset($this->formCd[$player->getName()])){
 				$this->formCd[$player->getName()]=time();
@@ -233,7 +233,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bPlayer Portal"){
-			$event->setCancelled();
+			$event->cancel();
 			$cooldown=1;
 			if(!isset($this->formCd[$player->getName()])){
 				$this->formCd[$player->getName()]=time();
@@ -249,7 +249,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bMarket"){
-			$event->setCancelled();
+			$event->cancel();
 			$cooldown=1;
 			if(!isset($this->formCd[$player->getName()])){
 				$this->formCd[$player->getName()]=time();
@@ -265,12 +265,12 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bLobby"){
-			$event->setCancelled();
+			$event->cancel();
 			$player->sendTo(0, true);
 			return;
 		}
 		if($item->getCustomName()=="§l§bLeave Duel"){
-			$event->setCancelled();
+			$event->cancel();
 			$duel=$this->plugin->getDuelHandler()->getDuelFromSpec($player);
 			$pduel=$this->plugin->getDuelHandler()->getPartyDuelFromSpec($player);
 			if(!is_null($duel)) $duel->removeSpectator($player, true);
@@ -278,7 +278,7 @@ class ItemListener implements Listener{
 			return;
 		}
 		if($item->getCustomName()=="§l§bTeleport"){
-			$event->setCancelled();
+			$event->cancel();
 			$cooldown=1;
 			if(!isset($this->formCd[$player->getName()])){
 				$this->formCd[$player->getName()]=time();
@@ -294,7 +294,7 @@ class ItemListener implements Listener{
 			}
 		}
 		if($item->getCustomName()=="§l§bStaff Portal"){
-			$event->setCancelled();
+			$event->cancel();
 			$cooldown=1;
 			if(!isset($this->formCd[$player->getName()])){
 				$this->formCd[$player->getName()]=time();
@@ -316,7 +316,7 @@ class ItemListener implements Listener{
 		$meta=$block->getDamage();
 		if($id==144 and $meta==3){
 			if($block->getCustomName()=="§l§bProfile"){
-				$event->setCancelled();
+				$event->cancel();
 				}else{
 					return;
 			}
@@ -1137,16 +1137,16 @@ class ItemListener implements Listener{
 				break;
 			}
 		});
-		$nodebuff=$this->plugin->getServer()->getLevelByName("nodebuff");
-		$nodebufflow=$this->plugin->getServer()->getLevelByName("nodebuff-low");
-		$nodebuffjava=$this->plugin->getServer()->getLevelByName("nodebuff-java");
-		$gapple=$this->plugin->getServer()->getLevelByName("gapple");
-		$opgapple=$this->plugin->getServer()->getLevelByName("opgapple");
-		$combo=$this->plugin->getServer()->getLevelByName("combo");
-		$fist=$this->plugin->getServer()->getLevelByName("fist");
-		$resistance=$this->plugin->getServer()->getLevelByName("resistance");
-		$sumoffa=$this->plugin->getServer()->getLevelByName("sumoffa");
-		$knockbackffa=$this->plugin->getServer()->getLevelByName("BuildFFA");
+		$nodebuff=$this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff");
+		$nodebufflow=$this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff-low");
+		$nodebuffjava=$this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff-java");
+		$gapple=$this->plugin->getServer()->getWorldManager()->getWorldByName("gapple");
+		$opgapple=$this->plugin->getServer()->getWorldManager()->getWorldByName("opgapple");
+		$combo=$this->plugin->getServer()->getWorldManager()->getWorldByName("combo");
+		$fist=$this->plugin->getServer()->getWorldManager()->getWorldByName("fist");
+		$resistance=$this->plugin->getServer()->getWorldManager()->getWorldByName("resistance");
+		$sumoffa=$this->plugin->getServer()->getWorldManager()->getWorldByName("sumoffa");
+		$knockbackffa=$this->plugin->getServer()->getWorldManager()->getWorldByName("BuildFFA");
 		if(!$this->plugin->getServer()->isLevelLoaded("nodebuff")){
 			$count1="§cOffline";
 			$c1="offline";
@@ -1229,9 +1229,9 @@ class ItemListener implements Listener{
 				break;
 			}
 		});
-		$normal=$this->plugin->getServer()->getLevelByName("nodebuff");
-		$lowkb=$this->plugin->getServer()->getLevelByName("nodebuff-low");
-		$java=$this->plugin->getServer()->getLevelByName("nodebuff-java");
+		$normal=$this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff");
+		$lowkb=$this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff-low");
+		$java=$this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff-java");
 		if(!$this->plugin->getServer()->isLevelLoaded("nodebuff")){
 			$count1="§cOffline";
 			$c1="offline";
@@ -1280,8 +1280,8 @@ class ItemListener implements Listener{
 				break;
 			}
 		});
-		$normal=$this->plugin->getServer()->getLevelByName("gapple");
-		$op=$this->plugin->getServer()->getLevelByName("opgapple");
+		$normal=$this->plugin->getServer()->getWorldManager()->getWorldByName("gapple");
+		$op=$this->plugin->getServer()->getWorldManager()->getWorldByName("opgapple");
 		if(!$this->plugin->getServer()->isLevelLoaded("gapple")){
 			$count1="§cOffline";
 			$c1="offline";

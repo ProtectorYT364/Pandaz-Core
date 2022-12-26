@@ -3,22 +3,21 @@
 namespace Zinkil\pc\commands;
 
 use pocketmine\command\CommandSender;
-use pocketmine\command\PluginCommand;
-use pocketmine\Player;
+use pocketmine\command\Command;
+use pocketmine\player\Player;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 use Zinkil\pc\Utils;
 
-class MuteChatCommand extends PluginCommand{
+class MuteChatCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("mutechat", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bMute the server global chat");
-		$this->setPermission("pc.command.mutechat");
-		$this->setAliases(["muteall", "silence"]);
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+		    {
+		  parent::__construct($name, $description);
+		  parent::setAliases(["muteall"]);
+		    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player->hasPermission("pc.command.mutechat")){
 			$player->sendMessage("§cYou cannot execute this command.");

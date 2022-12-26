@@ -13,8 +13,8 @@ class PlayerTask extends Task{
 	public function __construct(Core $plugin){
 		$this->plugin=$plugin;
 	}
-	public function onRun(int $tick):void{
-		$players=$this->plugin->getServer()->getLoggedInPlayers();
+	public function onRun():void{
+		$players=$this->plugin->getServer()->getOnlinePlayers();
 		foreach($players as $player){
 			if($player instanceof CPlayer){
 				$player->update();

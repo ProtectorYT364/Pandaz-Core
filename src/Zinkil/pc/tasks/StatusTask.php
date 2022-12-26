@@ -15,7 +15,7 @@ class StatusTask extends Task{
 		$this->plugin=$plugin;
 		$this->line=-1;
 	}
-	public function onRun(int $tick):void{
+	public function onRun():void{
 		$webHook=new Webhook(Core::WEBHOOK);
 		$emessage=new Message();
 		//$emessage->setContent("New logged event.");

@@ -13,12 +13,12 @@ class ParticleTask extends Task{
 	public function __construct(Core $plugin){
 		$this->plugin=$plugin;
 	}
-	public function onRun(int $tick):void{
+	public function onRun():void{
 		$players=$this->plugin->getServer()->getOnlinePlayers();
 		foreach($players as $player){
-			$player->getlevel()->addParticle(new FlameParticle($player->asVector3()->add(0, 0, 0)), $player->getLevel()->getPlayers());
-			$player->getlevel()->addParticle(new FlameParticle($player->asVector3()->add(0, 0.8, 0)), $player->getLevel()->getPlayers());
-			$player->getlevel()->addParticle(new FlameParticle($player->asVector3()->add(0, 1.8, 0)), $player->getLevel()->getPlayers());
+			$player->getWorld()->addParticle(new FlameParticle($player->asVector3()->add(0, 0, 0)), $player->getWorld()->getPlayers());
+			$player->getWorld()->addParticle(new FlameParticle($player->asVector3()->add(0, 0.8, 0)), $player->getWorld()->getPlayers());
+			$player->getWorld()->addParticle(new FlameParticle($player->asVector3()->add(0, 1.8, 0)), $player->getWorld()->getPlayers());
 		}
 	}
 }

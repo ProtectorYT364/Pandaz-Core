@@ -9,7 +9,7 @@ use pocketmine\item\ProjectileItem;
 use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\AnimatePacket;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
 use Zinkil\pc\Utils;

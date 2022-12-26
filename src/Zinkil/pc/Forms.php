@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use Zinkil\pc\Core;
 use Zinkil\pc\Utils;
 use Zinkil\pc\party\{PartyManager, Party};
@@ -32,7 +32,7 @@ class Forms{
 					$player->sendMessage("§cYou are already in a party.");
 					return;
 				}
-				if($player->getLevel()->getName()!=Core::LOBBY){
+				if($player->getWorld()->getName()!=Core::LOBBY){
 					$player->sendMessage("§cYou cannot create a party here.");
 					return;
 				}

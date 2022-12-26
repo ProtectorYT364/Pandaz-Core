@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
-use pocketmine\command\PluginCommand;
+use pocketmine\player\Player;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 
-class AliasCommand extends PluginCommand{
+class AliasCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("alias", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bGets all accounts and clientids for a player");
-		$this->setPermission("pc.command.alias");
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+    {
+        parent::__construct($name, $description);
+        parent::setAliases(["alias"]);
+    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player->hasPermission("pc.command.alias")){
 			$player->sendMessage("§cYou cannot execute this command.");

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\duels\groups;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use Zinkil\pc\Utils;
 
 class MatchedGroup{

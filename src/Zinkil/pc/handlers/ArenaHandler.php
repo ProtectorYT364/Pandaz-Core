@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\handlers;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
-use pocketmine\level\Position;
-use pocketmine\level\Location;
+use pocketmine\world\Position;
+use pocketmine\entity\Location;
 use pocketmine\utils\Config;
 use Zinkil\pc\duels\PracticeArena;
 use Zinkil\pc\duels\DuelArena;
@@ -156,7 +156,7 @@ private function initArenas():void{
 		$closestDistance=1.0;
 		foreach($arenas as $arena){
 			if($arena instanceof PracticeArena){
-				if($pos->getLevel()->getName()==$arena->getLevel()->getName()){
+				if($pos->getWorld()->getName()==$arena->getWorld()->getName()){
 					$center=$arena->getSpawnPosition();
 					$currentDistance=$center->distance($pos);
 					if($closestDistance<200){

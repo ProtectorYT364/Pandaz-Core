@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\entity\Skin;
-use pocketmine\command\PluginCommand;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\network\mcpe\protocol\PlayerListPacket;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
 use Zinkil\pc\Utils;
 
-class NickCommand extends PluginCommand{
+class NickCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("nick", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bChange your nickname");
-		$this->setPermission("pc.command.nick");
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+		    {
+		  parent::__construct($name, $description);
+		  parent::setAliases(["nick"]);
+		    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player instanceof Player){
 			return;

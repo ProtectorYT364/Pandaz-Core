@@ -15,7 +15,7 @@ class NameTagTask extends Task{
 	public function __construct(Core $plugin){
 		$this->plugin=$plugin;
 	}
-	public function onRun(int $tick):void{
+	public function onRun():void{
 		foreach($this->plugin->getServer()->getOnlinePlayers() as $player){
 			if($player instanceof CPlayer){
 				$rank=$player->getRank();
@@ -23,18 +23,18 @@ class NameTagTask extends Task{
 				$rank=$this->plugin->getDatabaseHandler()->getRank(Utils::getPlayerName($player));
 			}
 			$health=round($player->getHealth(), 1);
-			$ping=round($player->getPing(), 1);
+			$ping=round((int)$player->getNetworkSession()->getPing() ?? 0, 1);
 			$os=$this->plugin->getPlayerOs($player);
 			$cps=$this->plugin->getClickHandler()->getCps($player);
 			$kills=$this->plugin->getDatabaseHandler()->getKills($player);
 			if($this->plugin->getDuelHandler()->getDuel($player)===null and $this->plugin->getDuelHandler()->getPartyDuel($player)===null){
 				$format=Utils::getNameTagFormat($rank);
 				$format=str_replace("{name}", Utils::getPlayerDisplayName($player), $format);
-				$format=str_replace("{hp}", $health, $format);
-				$format=str_replace("{ping}", $ping, $format);
-				$format=str_replace("{os}", $os, $format);
-				$format=str_replace("{cps}", $cps, $format);
-				$format=str_replace("{kills}", $kills, $format);
+				$format=str_replace("{hp}", (string)$health, $format);
+				$format=str_replace("{ping}", (string)$ping, $format);
+				$format=str_replace("{os}", (string)$os, $format);
+				$format=str_replace("{cps}", (string)$cps, $format);
+				$format=str_replace("{kills}", (string)$kills, $format);
 				if(!$player->isDisguised()){
 					if(!$player->isVanished()){
 						$player->setNameTag($format);

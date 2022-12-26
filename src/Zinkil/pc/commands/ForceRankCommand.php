@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
-use pocketmine\command\PluginCommand;
+use pocketmine\player\Player;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 
-class ForceRankCommand extends PluginCommand{
+class ForceRankCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("forcerank", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bGive a player a forced rank");
-		$this->setPermission("pc.command.forcerank");
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+		    {
+	  parent::__construct($name, $description);
+		parent::setAliases(["forcerank"]);
+		    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player->hasPermission("pc.command.forcerank")){
 			$player->sendMessage("§cYou cannot execute this command.");

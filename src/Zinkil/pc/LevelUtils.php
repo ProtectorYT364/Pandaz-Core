@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
 use Zinkil\pc\Utils;
@@ -13,8 +13,8 @@ class LevelUtils{
 	
 	public static function increaseLevel($player){
 		if(!$player instanceof CPlayer) return;
-		Core::getInstance()->getDatabaseHandler()->setLevel(Utils::getPlayerName($player), Core::getInstance()->getDatabaseHandler()->getLevel(Utils::getPlayerName($player)) + 1);
-		$level=Core::getInstance()->getDatabaseHandler()->getLevel(Utils::getPlayerName($player));
+		Core::getInstance()->getDatabaseHandler()->setLevel(Utils::getPlayerName($player), Core::getInstance()->getDatabaseHandler()->getWorld(Utils::getPlayerName($player)) + 1);
+		$level=Core::getInstance()->getDatabaseHandler()->getWorld(Utils::getPlayerName($player));
 		$player=Utils::getPlayer($player);
 		if($player instanceof Player){
 		}
@@ -63,7 +63,7 @@ class LevelUtils{
 				$kill=$rand;
 			}
 			$total=$kill + $boost + $rankedbonus;
-			$level=Core::getInstance()->getDatabaseHandler()->getLevel(Utils::getPlayerName($player));
+			$level=Core::getInstance()->getDatabaseHandler()->getWorld(Utils::getPlayerName($player));
 			$neededxp=Core::getInstance()->getDatabaseHandler()->getNeededXp(Utils::getPlayerName($player));
 			$currentxp=Core::getInstance()->getDatabaseHandler()->getCurrentXp(Utils::getPlayerName($player));
 			$totalxp=Core::getInstance()->getDatabaseHandler()->getTotalXp(Utils::getPlayerName($player));
@@ -114,7 +114,7 @@ class LevelUtils{
 				$death=$rand;
 			}
 			$total=$death + $boost + $rankedbonus;
-			$level=Core::getInstance()->getDatabaseHandler()->getLevel(Utils::getPlayerName($player));
+			$level=Core::getInstance()->getDatabaseHandler()->getWorld(Utils::getPlayerName($player));
 			$neededxp=Core::getInstance()->getDatabaseHandler()->getNeededXp(Utils::getPlayerName($player));
 			$currentxp=Core::getInstance()->getDatabaseHandler()->getCurrentXp(Utils::getPlayerName($player));
 			$totalxp=Core::getInstance()->getDatabaseHandler()->getTotalXp(Utils::getPlayerName($player));
@@ -131,7 +131,7 @@ class LevelUtils{
 	}
 	public static function handleXp($player){
 		if(!$player instanceof CPlayer) return;
-		$level=Core::getInstance()->getDatabaseHandler()->getLevel(Utils::getPlayerName($player));
+		$level=Core::getInstance()->getDatabaseHandler()->getWorld(Utils::getPlayerName($player));
 		$neededxp=Core::getInstance()->getDatabaseHandler()->getNeededXp(Utils::getPlayerName($player));
 		if($level>=1){
 			$mby=1.05;

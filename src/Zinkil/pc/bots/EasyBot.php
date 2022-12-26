@@ -2,14 +2,14 @@
 
 namespace Zinkil\pc\bots;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\entity\Human;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\block\{Slab, Stair, Flowable};
 use pocketmine\entity\Attribute;
-use pocketmine\level\Level;
+use pocketmine\world\World;
 use pocketmine\math\Vector3;
 use pocketmine\block\Liquid;
 use pocketmine\nbt\tag\CompoundTag;
@@ -109,7 +109,7 @@ class EasyBot extends Human{
 		}
 		$this->setNametag("§e".$this->getNameTag()." §f[§c".round($this->getHealth(), 1)."§f]");
 		if($this->hasTarget()){
-			if($this->getLevel()->getName()==$this->getTarget()->getLevel()->getName()){
+			if($this->getWorld()->getName()==$this->getTarget()->getWorld()->getName()){
 				return $this->attackTarget();
 			}else{
 				$this->setDeactivated();
@@ -172,7 +172,7 @@ class EasyBot extends Human{
 			$this->target=null;
 			return true;
 		}
-		if($this->getLevel()->getName()!=$target->getLevel()->getName()){
+		if($this->getWorld()->getName()!=$target->getWorld()->getName()){
 			$this->setDeactivated();
 			if($this->hasDuel()) $this->getDuel()->endDuelPrematurely();
 			if(!$this->closed) $this->flagForDespawn();
@@ -225,11 +225,11 @@ class EasyBot extends Human{
 					$target->attack($event);
 					//$target->sendMessage("Hit");
 					$volume=0x10000000 * (min(30, 10) / 5);
-					$target->getLevel()->broadcastLevelSoundEvent($target->asVector3(), LevelSoundEventPacket::SOUND_ATTACK, (int) $volume);
+					$target->getWorld()->broadcastLevelSoundEvent($target->asVector3(), LevelSoundEventPacket::SOUND_ATTACK, (int) $volume);
 				}else{
 					//$target->sendMessage("Missed");
 					$volume=0x10000000 * (min(30, 10) / 5);
-					$target->getLevel()->broadcastLevelSoundEvent($this->asVector3(), LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE, (int) $volume);
+					$target->getWorld()->broadcastLevelSoundEvent($this->asVector3(), LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE, (int) $volume);
 				}
 				$this->attackcooldown=self::ATTACK_COOLDOWN;
 			}
@@ -241,14 +241,14 @@ class EasyBot extends Human{
 	public function attack(EntityDamageEvent $source):void{
 		parent::attack($source);
 		if($source->isCancelled()){
-			$source->setCancelled();
+			$source->cancel();
 			return;
 		}
 		if($source instanceof EntityDamageByEntityEvent){
 			$killer=$source->getDamager();
 			if($killer instanceof Player){
 				if($killer->isSpectator()){
-					$source->setCancelled(true);
+					$source->cancel(true);
 					return;
 				}
 				$deltaX=$this->x - $killer->x;
@@ -295,7 +295,7 @@ class EasyBot extends Human{
 		$maxX=$minX + 16;
 		$maxY=$minY + 16;
 		$maxZ=$minZ + 16;
-		$level=$this->getLevel();
+		$level=$this->getWorld();
 		for($attempts=0; $attempts < 16; ++$attempts){
 			$x=mt_rand($minX, $maxX);
 			$y=mt_rand($minY, $maxY);
@@ -324,14 +324,14 @@ class EasyBot extends Human{
 	public function getFrontBlock($y=0){
 		$dv=$this->getDirectionVector();
 		$pos=$this->asVector3()->add($dv->x * $this->getScale(), $y + 1, $dv->z * $this->getScale())->round();
-		return $this->getLevel()->getBlock($pos);
+		return $this->getWorld()->getBlock($pos);
 	}
 	public function shouldJump(){
 		if($this->jumpTicks > 0) return false;
 		if(!$this->isOnGround()) return false;
 		return $this->isCollidedHorizontally or 
 		($this->getFrontBlock()->getId()!=0 or $this->getFrontBlock(-1) instanceof Stair) or
-		($this->getLevel()->getBlock($this->asVector3()->add(0,-0,5)) instanceof Slab and
+		($this->getWorld()->getBlock($this->asVector3()->add(0,-0,5)) instanceof Slab and
 		(!$this->getFrontBlock(-0.5) instanceof Slab and $this->getFrontBlock(-0.5)->getId()!=0)) and
 		$this->getFrontBlock(1)->getId()==0 and 
 		$this->getFrontBlock(2)->getId()==0 and 
@@ -345,7 +345,7 @@ class EasyBot extends Human{
 	}
 	public function getJumpMultiplier(){
 		return 64;
-		if($this->getFrontBlock() instanceof Slab or $this->getFrontBlock() instanceof Stair or $this->getLevel()->getBlock($this->asVector3()->subtract(0,0.5)->round()) instanceof Slab and $this->getFrontBlock()->getId()!=0){
+		if($this->getFrontBlock() instanceof Slab or $this->getFrontBlock() instanceof Stair or $this->getWorld()->getBlock($this->asVector3()->subtract(0,0.5)->round()) instanceof Slab and $this->getFrontBlock()->getId()!=0){
 			$fb=$this->getFrontBlock();
 			if($fb instanceof Slab and $fb->getDamage() & 0x08 > 0) return 8;
 			if($fb instanceof Stair and $fb->getDamage() & 0x04 > 0) return 8;

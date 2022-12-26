@@ -12,7 +12,7 @@ class DuelTask extends Task{
 	public function __construct(Core $plugin){
 		$this->plugin=$plugin;
 	}
-	public function onRun(int $tick):void{
+	public function onRun():void{
 		$queuedPlayers=$this->plugin->getDuelHandler()->getQueuedPlayers();
 		$awaitingMatches=$this->plugin->getDuelHandler()->getAwaitingGroups();
 		$keys=array_keys($queuedPlayers);

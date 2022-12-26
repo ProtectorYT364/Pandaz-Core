@@ -6,7 +6,7 @@ namespace Zinkil\pc\listeners;
 
 use pocketmine\event\Listener;
 use pocketmine\Server;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\command\Command;
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
@@ -19,11 +19,12 @@ use pocketmine\item\EnderPearl as ItemEnderPearl;
 use pocketmine\entity\projectile\EnderPearl as ProjectileEnderPearl;
 use pocketmine\item\Arrow;
 use pocketmineentity\projectile\Arrow as ProjectileArrow;
-use pocketmine\level\Location;
-use pocketmine\level\Position;
+use pocketmine\entity\Location;
+use pocketmine\world\Position;
 use pocketmine\entity\Effect;
 use pocketmine\entity\EffectInstance;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\types\LevelSoundEvent;
 use pocketmine\block\Block;
 use pocketmine\level\particle\CriticalParticle;
 use pocketmine\network\mcpe\protocol\LoginPacket;
@@ -33,7 +34,7 @@ use pocketmine\event\player\PlayerCreationEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerExhaustEvent;
-use pocketmine\event\player\PlayerPreLoginEvent;
+use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerDeathEvent;
@@ -43,7 +44,7 @@ use pocketmine\event\entity\EntityDeathEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\event\entity\EntityLevelChangeEvent;
+use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\event\entity\ProjectileHitEntityEvent;
 use pocketmine\event\entity\ProjectileHitEvent;
@@ -91,12 +92,12 @@ class PlayerListener implements Listener{
 	* @priority HIGHEST
 	*/
 	function onCraft(CraftItemEvent $event){
-		$event->setCancelled();
+		$event->cancel();
 	}
 	/**
 	* @priority HIGHEST
 	*/
-	public function onPreLogin(PlayerPreLoginEvent $event){
+	public function onPreLogin(PlayerLoginEvent $event){
 		$player=$event->getPlayer();
 		if($player instanceof CPlayer){
 			$player->initializeLogin();
@@ -128,8 +129,8 @@ class PlayerListener implements Listener{
 				return;
 			}
 		}
-		$ip=$player->getAddress();
-		$cid=$player->getClientId();
+		$ip=$player->getNetworkSession()->getIp();
+		//$cid=$player->getClientId();
 		$contentsip=file_get_contents($this->plugin->getDataFolder()."aliases/".$ip, true);
 		$listip=explode(", ", $contentsip);
 		foreach($listip as $altaccsip){
@@ -137,14 +138,15 @@ class PlayerListener implements Listener{
 				$player->kick("§cYou are banned on another account.\n§fContact us: ".Core::DISCORD, false);
 			}
 		}
-		$contentscid=file_get_contents($this->plugin->getDataFolder()."aliases/".$cid, true);
-		$listcid=explode(", ", $contentscid);
-		foreach($listcid as $altaccscid){
-			if($this->plugin->getDatabaseHandler()->isTemporarilyBanned($altaccscid) or $this->plugin->getDatabaseHandler()->isPermanentlyBanned($altaccscid)){
-				$player->kick("§cYou are banned on another account.\n§fContact us: ".Core::DISCORD, false);
-			}
-		}
+		//$contentscid=file_get_contents($this->plugin->getDataFolder()."aliases/".$cid, true);
+		//$listcid=explode(", ", $contentscid);
+		//foreach($listcid as $altaccscid){
+		//	if($this->plugin->getDatabaseHandler()->isTemporarilyBanned($altaccscid) or $this->plugin->getDatabaseHandler()->isPermanentlyBanned($altaccscid)){
+		//		$player->kick("§cYou are banned on another account.\n§fContact us: ".Core::DISCORD, false);
+		//	}
+		//}
 	}
+        
 	/**
 	* @priority HIGHEST
 	*/
@@ -153,7 +155,7 @@ class PlayerListener implements Listener{
 		$bar = new BossBar();
 		if($player instanceof CPlayer) $player->initializeJoin();
 		$event->setJoinMessage("§f(§a+§f) §a".$player->getDisplayName());
-		$player->addTitle("§3Welcome At", "§bPandaz §fPractice", 20, 50, 60);
+		$player->sendTitle("§3Welcome At", "§bPandaz §fPractice", 20, 50, 60);
 		$bar->setTitle("§l§bPandaz §l§fPractice");
 		$bar->setSubTitle("§b");
 		$bar->setPercentage(1);
@@ -239,7 +241,7 @@ class PlayerListener implements Listener{
 				foreach($killer->getInventory()->getContents() as $pots){
 					if($pots instanceof ItemSplashPotion) $potsB++;
 				}
-				if($killer->getLevel()->getName()=="nodebuff" or $killer->getLevel()->getName()=="nodebuff-low" or $killer->getLevel()->getName()=="nodebuff-java"){
+				if($killer->getWorld()->getName()=="nodebuff" or $killer->getWorld()->getName()=="nodebuff-low" or $killer->getWorld()->getName()=="nodebuff-java"){
 					$dm="§l§9Nodebuff §7» §r§b".$player->getDisplayName()." §6[".$potsA." Pots] §7Was ".$messages[array_rand($messages)]." §7By§b ".$killer->getDisplayName()." §6[".$potsB." Pots - ".$finalhealth." HP]";
 				}else{
 					$dm="§l§cPvP §7» §r§b".$player->getDisplayName()." §7Was ".$messages[array_rand($messages)]." §7By§b ".$killer->getDisplayName()." §6[".$finalhealth." HP]";
@@ -248,7 +250,7 @@ class PlayerListener implements Listener{
 				$killer->setHealth($killer->getMaxHealth());
 				if($killer instanceof CPlayer) Utils::updateStats($killer, 0);
 				if($player instanceof CPlayer) Utils::updateStats($player, 1);
-				if(Utils::isAutoRekitEnabled($killer)==true) Kits::sendKit($killer, $killer->getLevel()->getName());
+				if(Utils::isAutoRekitEnabled($killer)==true) Kits::sendKit($killer, $killer->getWorld()->getName());
 			}
 		}
 	}
@@ -260,16 +262,16 @@ class PlayerListener implements Listener{
 		$reason=$event->getRegainReason();
 		$amount=$event->getAmount();
 		if($reason===2){
-			//$event->setCancelled();
+			//$event->cancel();
 		}
 	}
 	/**
 	* @priority HIGH
 	*/
-	public function onLevelChange(EntityLevelChangeEvent $event){
+	public function onLevelChange(EntityTeleportEvent $event){
 		$player=$event->getEntity();
 		if(!$player instanceof Player) return;
-		$level=$event->getTarget()->getName();
+		$level=$event->getTo()->getWorld()->getFolderName();
 		if($level=="lobby") $player->setPlayerLocation(0);
 		if($level=="nodebuff") $player->setPlayerLocation(1);
 		if($level=="gapple") $player->setPlayerLocation(2);
@@ -288,7 +290,7 @@ class PlayerListener implements Listener{
 	*/
 	public function onRespawn(PlayerRespawnEvent $event){
 		$player=$event->getPlayer();
-		$position=new Position(258, 69, 234, $this->plugin->getServer()->getLevelByName(Core::LOBBY));
+		$position=new Position(258, 69, 234, $this->plugin->getServer()->getWorldManager()->getWorldByName(Core::LOBBY));
 		$event->setRespawnPosition($position);
 		if($player instanceof CPlayer) $player->sendTo(0, true);
 	}
@@ -299,13 +301,13 @@ class PlayerListener implements Listener{
 		$player=$event->getPlayer();
 		if(Utils::getGlobalMute()===true){
 			if(!$player->hasPermission("pc.bypass.chatsilence")){
-				$event->setCancelled();
+				$event->cancel();
 				$player->sendMessage("§cChat is silenced.");
 				return;
 			}
 		}
 		if($this->plugin->getDatabaseHandler()->isMuted($player->getName())){
-			$event->setCancelled();
+			$event->cancel();
 			$player->sendMessage("§cYou are muted.");
 			return;
 		}
@@ -315,7 +317,7 @@ class PlayerListener implements Listener{
 			if(!$player->isChatCooldown()){
 				$this->plugin->getScheduler()->scheduleRepeatingTask(new ChatCooldownTask($this->plugin, $player), 20);
 			}else{
-				$event->setCancelled();
+				$event->cancel();
 				$player->sendMessage("§cYou cannot chat that quick.");
 				return;
 			}
@@ -337,22 +339,22 @@ class PlayerListener implements Listener{
 			$event->setFormat($default);
 		}
 		if($player->hasPermission("pc.access.staffchat") and $message[0]=="!"){
-			$event->setCancelled();
+			$event->cancel();
 			foreach($this->plugin->getServer()->getOnlinePlayers() as $online){
 				if($online->hasPermission("pc.access.staffchat")){
 					$msg=str_replace("!", "", $message);
-					$level=$online->getLevel()->getName();
+					$level=$online->getWorld()->getName();
 					$online->sendMessage("§8[STAFF] §4[".$rank."] ".$player->getName().": §f".$msg);
 				}
 			}
 		}
 		if($player->isInParty() and $message[0]=="*"){
-			$event->setCancelled();
+			$event->cancel();
 			$msg=str_replace("*", "", $message);
 			$player->getParty()->sendMessage($player->getDisplayName().": ".$msg);
 		}
 		if($player instanceof CPlayer and $message[0]==="L"){
-			$event->setCancelled();
+			$event->cancel();
 			$player->kick("§cDon't be toxic.\n§fVia Anti-Toxic", false);
 		}
 	}
@@ -363,34 +365,7 @@ class PlayerListener implements Listener{
 		$player=$event->getPlayer();
 		$message=$event->getMessage();
 		if($player instanceof CPlayer and $player->isFrozen() and $message[0]==="/"){
-			$event->setCancelled();
-		}
-	}
-	/**
-	* @priority HIGH
-	*/
-	public function onInteract(PlayerInteractEvent $event){
-		$player=$event->getPlayer();
-		$os=$this->plugin->getPlayerOs($player);
-		$controls=$this->plugin->getPlayerControls($player);
-		$action=$event->getAction();
-		$item=$event->getItem();
-		$itemInHand=$player->getInventory()->getItemInHand();
-		$id=$item->getId();
-		$meta=$item->getDamage();
-		if($itemInHand->getId()===Item::SPLASH_POTION){
-			$event->setCancelled();
-			Utils::createPotion($player);
-		}
-		if($itemInHand->getId()===Item::ENDER_PEARL){
-			if($player->isFrozen() or $player->isEnderPearlCooldown()){
-				$event->setCancelled();
-			}
-		}
-		if($action===PlayerInteractEvent::RIGHT_CLICK_BLOCK or $action===PlayerInteractEvent::RIGHT_CLICK_AIR){
-			if($item->getId()===Item::MUSHROOM_STEW){
-				Utils::consumeItem($itemInHand, $player);
-			}
+			$event->cancel();
 		}
 	}
 	/**
@@ -398,7 +373,7 @@ class PlayerListener implements Listener{
 	*/
 	public function onExhaust(PlayerExhaustEvent $event){
 		$cause=$event->getCause();
-		$event->setCancelled();
+		$event->cancel();
 	}
 	/**
 	* @priority HIGH
@@ -408,31 +383,31 @@ class PlayerListener implements Listener{
 		$cause=$event->getCause();
 		$damage=$event->getBaseDamage();
 		if($cause===EntityDamageEvent::CAUSE_FALL){
-			$event->setCancelled();
+			$event->cancel();
 			return;
 		}
 		if($player instanceof Player){
 			if($player instanceof CPlayer){
-				if($player->isFrozen()) $event->setCancelled();
+				if($player->isFrozen()) $event->cancel();
 			}
-			$level=$player->getLevel()->getName();
+			$level=$player->getWorld()->getDisplayName();
 			if($level==Core::LOBBY){
-				$event->setCancelled();
+				$event->cancel();
 			}
-			if($player->getY() >= 128){
+			if($player->getLocation()->getY() >= 128){
 				if($level!=="lobby"){
-					$event->setCancelled();
+					$event->cancel();
 				}
 			}
 			if($this->plugin->getDuelHandler()->isInDuel($player)){
 				$duel=$this->plugin->getDuelHandler()->getDuel($player);
 				if($duel->isLoadingDuel() or $duel->didDuelEnd()){
-					$event->setCancelled();
+					$event->cancel();
 					return;
 				}
 				if($event->getFinalDamage()>=$player->getHealth()){
 					if(!$player->isCreative()){
-						$event->setCancelled();
+						$event->cancel();
 						$drops=$player->getInventory()->getContents();
 						foreach($drops as $item){
 							$delay=120;
@@ -452,12 +427,12 @@ class PlayerListener implements Listener{
 			if($this->plugin->getDuelHandler()->isInPartyDuel($player)){
 				$partyduel=$this->plugin->getDuelHandler()->getPartyDuel($player);
 				if($partyduel->isLoadingDuel() or $partyduel->didDuelEnd()){
-					$event->setCancelled();
+					$event->cancel();
 					return;
 				}
 				if($event->getFinalDamage()>=$player->getHealth()){
 					if(!$player->isCreative()){
-						$event->setCancelled();
+						$event->cancel();
 						$drops=$player->getInventory()->getContents();
 						foreach($drops as $item){
 							$delay=120;
@@ -473,13 +448,13 @@ class PlayerListener implements Listener{
 			if($this->plugin->getDuelHandler()->isInBotDuel($player)){
 				$botduel=$this->plugin->getDuelHandler()->getBotDuel($player);
 				if($botduel->isLoadingDuel() or $botduel->didDuelEnd()){
-					$event->setCancelled();
+					$event->cancel();
 					return;
 				}
 				$check=$player->getHealth() - $event->getFinalDamage();
 				if($event->getFinalDamage() - $check >= $player->getHealth()){
 					if(!$player->isCreative()){
-						$event->setCancelled();
+						$event->cancel();
 						$winner=($botduel->isPlayer($player) ? $botduel->getBotName():Utils::getPlayerName($duel->getPlayer()));
 						$loser=Utils::getPlayerName($player);
 						$duelwinner=Utils::getPlayer($winner);
@@ -504,25 +479,25 @@ class PlayerListener implements Listener{
 					if(!$event->isCancelled()){
 						if($players instanceof CPlayer) $players->setTagged(true);
 					}
-					$level=$players->getLevel()->getName();
+					$level=$players->getWorld()->getDisplayName();
 					if($level==Core::LOBBY){
-						$event->setCancelled();
+						$event->cancel();
 					}
 				}
 				if($player instanceof CPlayer and $player->isFrozen()){
-					$event->setCancelled();
+					$event->cancel();
 					$damager->sendMessage("§cYou cannot damage a frozen player.");
 				}
 				if($player instanceof CPlayer and $player->isVanished()){
-					$event->setCancelled();
+					$event->cancel();
 					$damager->sendMessage("§cYou cannot damage a vanished player.");
 				}
 				if($damager->isFrozen()){
-					$event->setCancelled();
+					$event->cancel();
 					$damager->sendMessage("§cYou cannot damage other players while frozen.");
 				}
 				if($damager->isVanished()){
-					$event->setCancelled();
+					$event->cancel();
 					$damager->sendMessage("§cYou cannot damage other players while vanished.");
 				}
 			}
@@ -541,9 +516,9 @@ class PlayerListener implements Listener{
 	/**
 	* @priority LOW
 	*/
-	public function onDisconnectPacket(DataPacketSendEvent $event){
-		$packet=$event->getPacket();
-		$player=$event->getPlayer();
+	/*public function onDisconnectPacket(DataPacketSendEvent $event){
+        $player = $event->getPlayer();
+		$packet=$event->getPacket()->pid();
 		if($packet instanceof DisconnectPacket and $packet->message==="Internal server error"){
 			$packet->message=("§cYou have encountered a bug.\n§fContact us: ".Core::DISCORD);
 			foreach($this->plugin->getServer()->getOnlinePlayers() as $online){
@@ -558,15 +533,17 @@ class PlayerListener implements Listener{
 			$packet->message=("§cWe are currently whitelisted, check back shortly.\n§fDiscord: ".Core::DISCORD);
 		}
 		if($packet instanceof DisconnectPacket and $packet->message==="Could not connect: Outdated client!"){
-			$packet->setCancelled(true);
+			$packet->cancel(true);
 		}
-	}
+	}/*
 	/**
 	* @priority LOW
 	*/
 	public function onPacketReceived(DataPacketReceiveEvent $event){
+        
 		$packet=$event->getPacket();
-		$player=$event->getPlayer();
+        $player = $event->getOrigin()->getPlayer();
+        if($player === null) return;
 		$os=$this->plugin->getPlayerOs($player);
 		$controls=$this->plugin->getPlayerControls($player);
 		if($packet instanceof LoginPacket and $player instanceof Player){
@@ -581,13 +558,6 @@ class PlayerListener implements Listener{
 				$this->plugin->getClickHandler()->addClick($player);
 			}
 		}
-		if($packet::NETWORK_ID===LevelSoundEventPacket::NETWORK_ID and $packet->sound===LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE){
-			$itemInHand=$player->getInventory()->getItemInHand();
-			if($this->plugin->getClickHandler()->isInArray($player)){
-				$this->plugin->getClickHandler()->addClick($player);
-			}
-			if($itemInHand->getId()===Item::MUSHROOM_STEW) Utils::consumeItem($itemInHand, $player);
-		}
 		if($packet instanceof EmotePacket){
 			$emoteId=$packet->getEmoteId();
 			$this->plugin->getServer()->broadcastPacket($player->getViewers(), EmotePacket::create($player->getId(), $emoteId, 1 << 0));
@@ -599,8 +569,8 @@ class PlayerListener implements Listener{
 	public function onDrop(PlayerDropItemEvent $event){
 		$player=$event->getPlayer();
 		$item=$event->getItem();
-		$level=$player->getLevel()->getName();
-		$event->setCancelled();
+		$level=$player->getWorld()->getName();
+		$event->cancel();
 	}
 	/**
 	* @priority LOWEST
@@ -619,7 +589,7 @@ class PlayerListener implements Listener{
 			}else{
 				if($cooldown > time() - $this->gappleCooldown[$player->getName()]){
 					$time=time() - $this->gappleCooldown[$player->getName()];
-					$event->setCancelled();
+					$event->cancel();
 					$player->sendMessage("§cYou cannot consume a golden apple that quick.");
 				}else{
 					$this->gappleCooldown[$player->getName()]=time();
@@ -634,7 +604,7 @@ class PlayerListener implements Listener{
 				}
 			}
 		}
-		if($item instanceof MushroomStew) $event->setCancelled();
+		if($item instanceof MushroomStew) $event->cancel();
 		if($name==Core::GOLDEN_HEAD){
 			$player->addEffect(new EffectInstance(Effect::getEffect(10), 20 * 9, 1, false));//add 5 seconds of regen
 		}
@@ -667,11 +637,11 @@ class PlayerListener implements Listener{
 		$player=$projectile->getOwningEntity();
 		$itemInHand=$player->getInventory()->getItemInHand();
 		if($projectile instanceof ProjectileSplashPotion){
-			$event->setCancelled();
+			$event->cancel();
 			Utils::createPotion($player);
 		}
 		if($projectile instanceof ProjectileEnderPearl){
-			$event->setCancelled();
+			$event->cancel();
 			if(!$player->isEnderPearlCooldown()){
 				Utils::createPearl($player);
 				$this->plugin->getScheduler()->scheduleRepeatingTask(new PearlTask($this->plugin, $player), 20);
@@ -685,10 +655,10 @@ class PlayerListener implements Listener{
 		$player=$event->getPlayer();
 		$from=$event->getFrom();
 		$to=$event->getTo();
-		if($player->getLevel()->getName()==Core::LOBBY and $player->getY() <= 0){
-			if($player instanceof CPlayer) $player->sendTo(0, true);
+		if($player->getWorld()->getDisplayName()==Core::LOBBY and $player->getLocation()->getY() <= 0){
+			if($player instanceof CPlayer) $player->getServer()->dispatchCommand($player, "hub");
 		}
-		if($player->getY() <=-5){
+		if($player->getLocation()->getY() <=-5){
 			if(!$this->plugin->getDuelHandler()->isInDuel($player)){
 				$player->setHealth(0);
 			}

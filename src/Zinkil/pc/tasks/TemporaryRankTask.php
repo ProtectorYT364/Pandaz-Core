@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\tasks;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\scheduler\Task;
 use Zinkil\pc\Core;
 
@@ -13,7 +13,7 @@ class TemporaryRankTask extends Task{
 	public function __construct(Core $plugin){
 		$this->plugin=$plugin;
 	}
-	public function onRun(int $tick):void{
+	public function onRun():void{
 		$query=$this->plugin->main->query("SELECT * FROM temporaryranks ORDER BY duration ASC;");
 		$result=$query->fetchArray(SQLITE3_ASSOC);
 		$now=time();

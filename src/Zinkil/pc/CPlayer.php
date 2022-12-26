@@ -4,20 +4,25 @@ declare(strict_types=1);
 
 namespace Zinkil\pc;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\network\SourceInterface;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\level\Location;
+use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\types\SkinAdapterSingleton;
 use Zinkil\pc\duels\groups\{BotDuelGroup, DuelGroup};
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\player\PlayerInfo;
+use pocketmine\entity\Living;
 use Zinkil\pc\Core;
 use Zinkil\pc\Utils;
 use Zinkil\pc\Kits;
@@ -80,8 +85,8 @@ class CPlayer extends Player{
 	private $currentTick;
 	private $endTick;
 	
-	public function __construct(SourceInterface $interface, $ip, $port){
-		parent::__construct($interface, $ip, $port);
+	public function __construct(Server $server, NetworkSession $session, PlayerInfo $playerInfo, bool $authenticated, Location $spawnLocation, ?CompoundTag $namedtag){
+		parent::__construct($server, $session, $playerInfo, $authenticated, $spawnLocation, $namedtag);
 		$plugin=$this->getServer()->getPluginManager()->getPlugin("Pandaz");
 		if($plugin instanceof Core){
 			$this->setPlugin($plugin);
@@ -119,7 +124,7 @@ class CPlayer extends Player{
 	
 	public function update():void{
 		$this->rank=$this->plugin->getDatabaseHandler()->getRank(Utils::getPlayerName($this));
-		if($this->getPing() >= 400){
+		if($this->getNetworkSession()->getPing() >= 400){
 			$this->pingTicks++;
 		}else{
 			$this->pingTicks=0;
@@ -137,7 +142,6 @@ class CPlayer extends Player{
 		}
 		$this->currentTick++;
 	}
-	
 	public function isInParty():bool{
 		return PartyManager::getPartyFromPlayer($this)!==null;
 	}
@@ -228,11 +232,11 @@ class CPlayer extends Player{
 	}
 	
 	public function setPlayerLocation(int $loc){
-		$this->location=$loc;
+		$this->getLocation=$loc;
 	}
 	
 	public function getPlayerLocation():int{
-		return $this->location;
+		return $this->getLocation;
 	}
 
 	public function setCpsFlags(int $int){
@@ -411,9 +415,9 @@ class CPlayer extends Player{
 			$x=258;
 			$y=69;
 			$z=234;
-			$world=$this->plugin->getServer()->getLevelByName($this->plugin->getLobby());
-			$this->teleport(new Location($x, $y, $z, 180, 0, $world));
-			$this->setPlayerLocation($loc);
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName($this->plugin->getLobby());
+			$this->teleport(new Location($x, $y, $z, $world, 180, 0));
+			//$this->setPlayerLocation($loc);
 			if($kit===true){
 				Kits::sendKit($this, "lobby");
 			}
@@ -423,9 +427,9 @@ class CPlayer extends Player{
 			$x=247;
 			$y=66;
 			$z=254;
-			$world=$this->plugin->getServer()->getLevelByName("nodebuff");
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff");
 			$this->teleport(new Location($x, $y, $z, 90, 0, $world));
-			$this->setPlayerLocation($loc);
+			//his->setPlayerLocation($loc);
 			if($kit===true){
 				Kits::sendKit($this, "nodebuff");
 			}
@@ -438,9 +442,9 @@ class CPlayer extends Player{
 			$x=253;
 			$y=67;
 			$z=256;
-			$world=$this->plugin->getServer()->getLevelByName("gapple");
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName("gapple");
 			$this->teleport(new Location($x, $y, $z, 90, 0, $world));
-			$this->setPlayerLocation($loc);
+			//his->setPlayerLocation($loc);
 			if($kit===true){
 				Kits::sendKit($this, "gapple");
 			}
@@ -453,9 +457,9 @@ class CPlayer extends Player{
 			$x=100.5;
 			$y=130;
 			$z=100.5;
-			$world=$this->plugin->getServer()->getLevelByName("opgapple");
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName("opgapple");
 			$this->teleport(new Location($x, $y, $z, 90, 0, $world));
-			$this->setPlayerLocation($loc);
+			//his->setPlayerLocation($loc);
 			if($kit===true){
 				Kits::sendKit($this, "opgapple");
 			}
@@ -469,9 +473,9 @@ class CPlayer extends Player{
 			$y=66;
 			$z=256;
 			$yaw=mt_rand(0, 180);
-			$world=$this->plugin->getServer()->getLevelByName("combo");
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName("combo");
 			$this->teleport(new Location($x, $y, $z, $yaw, 0, $world));
-			$this->setPlayerLocation($loc);
+			//his->setPlayerLocation($loc);
 			if($kit===true){
 				Kits::sendKit($this, "combo");
 			}
@@ -485,9 +489,9 @@ class CPlayer extends Player{
 			$y=74;
 			$z=237;
 			$yaw=mt_rand(0, 180);
-			$world=$this->plugin->getServer()->getLevelByName("fist");
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName("fist");
 			$this->teleport(new Location($x, $y, $z, $yaw, 0, $world));
-			$this->setPlayerLocation($loc);
+			//his->setPlayerLocation($loc);
 			if($kit===true){
 				Kits::sendKit($this, "fist");
 			}
@@ -500,9 +504,9 @@ class CPlayer extends Player{
 			$x=100.5;
 			$y=130;
 			$z=100.5;
-			$world=$this->plugin->getServer()->getLevelByName("nodebuff-low");
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff-low");
 			$this->teleport(new Location($x, $y, $z, 90, 0, $world));
-			$this->setPlayerLocation($loc);
+			//his->setPlayerLocation($loc);
 			if($kit===true){
 				Kits::sendKit($this, "nodebuff");
 			}
@@ -515,9 +519,9 @@ class CPlayer extends Player{
 			$x=100.5;
 			$y=130;
 			$z=100.5;
-			$world=$this->plugin->getServer()->getLevelByName("nodebuff-java");
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff-java");
 			$this->teleport(new Location($x, $y, $z, 90, 0, $world));
-			$this->setPlayerLocation($loc);
+			//his->setPlayerLocation($loc);
 			if($kit===true){
 				Kits::sendKit($this, "nodebuffjava");
 			}
@@ -531,9 +535,9 @@ class CPlayer extends Player{
 			$y=66;
 			$z=265;
 			$yaw=mt_rand(0, 180);
-			$world=$this->plugin->getServer()->getLevelByName("resistance");
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName("resistance");
 			$this->teleport(new Location($x, $y, $z, $yaw, 0, $world));
-			$this->setPlayerLocation($loc);
+			//his->setPlayerLocation($loc);
 			if($kit===true){
 				Kits::sendKit($this, "resistance");
 			}
@@ -547,7 +551,7 @@ class CPlayer extends Player{
 			$y=65;
 			$z=256;
 			$yaw=mt_rand(0, 180);
-			$world=$this->plugin->getServer()->getLevelByName("sumoffa");
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName("sumoffa");
 			$this->teleport(new Location($x, $y, $z, $yaw, 0, $world));
 			$this->setPlayerLocation($loc);
 			if($kit===true){
@@ -563,9 +567,9 @@ class CPlayer extends Player{
 			$y=120;
 			$z=0;
 			$yaw=mt_rand(0, 180);
-			$world=$this->plugin->getServer()->getLevelByName("BuildFFA");
+			$world=$this->plugin->getServer()->getWorldManager()->getWorldByName("BuildFFA");
 			$this->teleport(new Location($x, $y, $z, $yaw, 0, $world));
-			$this->setPlayerLocation($loc);
+			//his->setPlayerLocation($loc);
 			if($kit===true){
 				Kits::sendKit($this, "knockbackffa");
 			}
@@ -604,29 +608,29 @@ class CPlayer extends Player{
 						break;
 					}
 				}else{
-					switch($this->getLevel()){
-						case $this->plugin->getServer()->getLevelByName("nodebuff");
+					switch($this->getWorld()){
+						case $this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff");
 						$this->attackTime=9;
 						break;
-						case $this->plugin->getServer()->getLevelByName("gapple");
+						case $this->plugin->getServer()->getWorldManager()->getWorldByName("gapple");
 						$this->attackTime=8;
 						break;
-						case $this->plugin->getServer()->getLevelByName("opgapple");
+						case $this->plugin->getServer()->getWorldManager()->getWorldByName("opgapple");
 						$this->attackTime=8;
 						break;
-						case $this->plugin->getServer()->getLevelByName("combo");
+						case $this->plugin->getServer()->getWorldManager()->getWorldByName("combo");
 						$this->attackTime=3;
 						break;
-						case $this->plugin->getServer()->getLevelByName("fist");
+						case $this->plugin->getServer()->getWorldManager()->getWorldByName("fist");
 						$this->attackTime=7;
 						break;
-						case $this->plugin->getServer()->getLevelByName("resistance");
+						case $this->plugin->getServer()->getWorldManager()->getWorldByName("resistance");
 						$this->attackTime=7;
 						break;
-						case $this->plugin->getServer()->getLevelByName("sumoffa");
+						case $this->plugin->getServer()->getWorldManager()->getWorldByName("sumoffa");
 						$this->attackTime=7;
 						break;
-						case $this->plugin->getServer()->getLevelByName("BuildFFA");
+						case $this->plugin->getServer()->getWorldManager()->getWorldByName("BuildFFA");
 						$this->attackTime=9;
 						break;
 					}
@@ -635,59 +639,59 @@ class CPlayer extends Player{
 		}
 	}
 	
-	public function knockBack($damager, float $damage, float $x, float $z, float $base=0.4):void{
+	public function knockBack(float $x, float $z, float $base=0.4, ?float $verticalLimit = 0.4):void{
 		$xzKB=0.388;
 		$yKb=0.390;
 		if($damager instanceof Player){
-			if($this->plugin->getDuelHandler()->getPartyDuel($damager)===null and $this->plugin->getDuelHandler()->getDuel($damager)===null){
-				switch($this->getLevel()){
-					case $this->plugin->getServer()->getLevelByName("nodebuff");
+			if($this->plugin->getDuelHandler()->getPartyDuel($this)===null and $this->plugin->getDuelHandler()->getDuel($this)===null){
+				switch($this->getWorld()){
+					case $this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff");
 					$xzKB=0.385;
 					$yKb=0.390;
 					break;
-					case $this->plugin->getServer()->getLevelByName("nodebuff-low");
+					case $this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff-low");
 					$xzKB=0.385;
 					$yKb=0.380;
 					break;
-					case $this->plugin->getServer()->getLevelByName("nodebuff-java");
+					case $this->plugin->getServer()->getWorldManager()->getWorldByName("nodebuff-java");
 					$xzKB=0.390;
 					$yKb=0.366;
 					break;
-					case $this->plugin->getServer()->getLevelByName("gapple");
+					case $this->plugin->getServer()->getWorldManager()->getWorldByName("gapple");
 					$xzKB=0.386;
 					$yKb=0.388;
 					break;
-					case $this->plugin->getServer()->getLevelByName("opgapple");
+					case $this->plugin->getServer()->getWorldManager()->getWorldByName("opgapple");
 					$xzKB=0.391;
 					$yKb=0.391;
 					break;
-					case $this->plugin->getServer()->getLevelByName("combo");
+					case $this->plugin->getServer()->getWorldManager()->getWorldByName("combo");
 					$xzKB=0.290;
 					$yKb=0.260;
 					break;
-					case $this->plugin->getServer()->getLevelByName("fist");
+					case $this->plugin->getServer()->getWorldManager()->getWorldByName("fist");
 					$xzKB=0.370;
 					$yKb=0.381;
 					break;
-					case $this->plugin->getServer()->getLevelByName("resistance");
+					case $this->plugin->getServer()->getWorldManager()->getWorldByName("resistance");
 					$xzKB=0.370;
 					$yKb=0.381;
 					break;
-					case $this->plugin->getServer()->getLevelByName("sumoffa");
+					case $this->plugin->getServer()->getWorldManager()->getWorldByName("sumoffa");
 					$xzKB=0.370;
 					$yKb=0.381;
 					break;
-					case $this->plugin->getServer()->getLevelByName("BuildFFA");
+					case $this->plugin->getServer()->getWorldManager()->getWorldByName("BuildFFA");
 					$xzKB=0.370;
 					$yKb=0.381;
 					break;
 				}
-			}elseif($this->plugin->getDuelHandler()->isInPartyDuel($damager)){
-				$duel=$this->plugin->getDuelHandler()->getPartyDuel($damager);
+			}elseif($this->plugin->getDuelHandler()->isInPartyDuel($this)){
+				$duel=$this->plugin->getDuelHandler()->getPartyDuel($this);
 				//$xzKB=$duel->getHorizontalKb();
 				//$yKb=$duel->getVerticalKb();
-			}elseif($this->plugin->getDuelHandler()->isInDuel($damager)){
-				$duel=$this->plugin->getDuelHandler()->getDuel($damager);
+			}elseif($this->plugin->getDuelHandler()->isInDuel($this)){
+				$duel=$this->plugin->getDuelHandler()->getDuel($this);
 				switch(strtolower($duel->getQueue())){
 					case "nodebuff":
 					$xzKB=0.385;
@@ -748,6 +752,7 @@ class CPlayer extends Player{
 		}
 	}
 	public function initializeLogin(){
+        if($this->plugin == null) return;
 		$this->plugin->getDatabaseHandler()->rankAdd(Utils::getPlayerName($this));
 		$this->plugin->getDatabaseHandler()->levelsAdd(Utils::getPlayerName($this));
 		$this->plugin->getDatabaseHandler()->essentialStatsAdd(Utils::getPlayerName($this));
@@ -759,8 +764,8 @@ class CPlayer extends Player{
 		$this->rank=$this->plugin->getDatabaseHandler()->getRank(Utils::getPlayerName($this));
 		$this->clantag=Utils::clanTag($this);
 		
-		$ip=$this->getAddress();
-		$cid=$this->getClientId();
+		$ip=$this->getNetworkSession()->getIp();
+		//$cid=$this->getClientId();
 		if(file_exists($this->plugin->getDataFolder()."aliases/".$ip)){
 			$file=explode(", ", file_get_contents($this->plugin->getDataFolder()."aliases/".$ip, true));
 			if(!in_array(Utils::getPlayerName($this), $file)){
@@ -768,14 +773,6 @@ class CPlayer extends Player{
 			}
 		}else{
 			file_put_contents($this->plugin->getDataFolder()."aliases/".$ip, Utils::getPlayerName($this).", ");
-		}
-		if(file_exists($this->plugin->getDataFolder()."aliases/".$cid)){
-			$file=explode(", ", file_get_contents($this->plugin->getDataFolder()."aliases/".$cid, true));
-			if(!in_array(Utils::getPlayerName($this), $file)){
-				file_put_contents($this->plugin->getDataFolder()."aliases/".$cid, Utils::getPlayerName($this).", ", FILE_APPEND);
-			} 
-		}else{
-			file_put_contents($this->plugin->getDataFolder()."aliases/".$cid, Utils::getPlayerName($this).", ");
 		}
 	}
 	
@@ -785,15 +782,23 @@ class CPlayer extends Player{
 		}
 		$this->setDisplayName(Utils::getPlayerName($this));
 		$this->plugin->getPermissionHandler()->addPermission($this, $this->getRank());
-		$this->sendTo(0, true);
+		$x=258;
+		$y=69;
+		$z=234;
+		$world=$this->plugin->getServer()->getWorldManager()->getWorldByName($this->plugin->getLobby());
+        
+		$this->teleport(new Location($x, $y, $z, $world, 180, 0));
 		$this->plugin->getClickHandler()->addToArray($this);
 		Utils::spawnStaticTextsToPlayer($this);
 		Utils::spawnUpdatingTextsToPlayer($this);
-		Utils::teleportSound($this);
+		//Utils::teleportSound($this);
 	}
 	
 	public function initializeQuit(){
+        if($this->plugin == null) return;
+        if($this->plugin->getClickHandler() == null) return;
 		$this->plugin->getClickHandler()->removeFromArray($this);
+        if($this->plugin->getDuelHandler() == null) return;
 		$this->plugin->getDuelHandler()->removePlayerFromQueue($this);
 		$duel=$this->plugin->getDuelHandler()->getDuelFromSpec($this);
 		$party=$this->getParty();
@@ -816,5 +821,29 @@ class CPlayer extends Player{
 				$party->removeMember($this);
 			}
 		}
+	}
+    
+    protected function setPosition(Vector3 $pos) : bool{
+        if(is_int($this->getLocation)) return false;
+		$oldWorld = $this->getLocation->getWorld() ?? null;
+		if(parent::setPosition($pos)){
+			$newWorld = $this->getWorld();
+			if($oldWorld !== $newWorld){
+				if($oldWorld !== null){
+					foreach($this->usedChunks as $index => $status){
+						World::getXZ($index, $X, $Z);
+						$this->unloadChunk($X, $Z, $oldWorld);
+					}
+				}
+
+				$this->usedChunks = [];
+				$this->loadQueue = [];
+				$this->getNetworkSession()->onEnterWorld();
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 }

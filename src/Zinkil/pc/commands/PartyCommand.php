@@ -4,22 +4,23 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
-use pocketmine\command\PluginCommand;
+use pocketmine\player\Player;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 use Zinkil\pc\Utils;
 use Zinkil\pc\party\PartyManager;
 
-class PartyCommand extends PluginCommand{
+class PartyCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("party", $plugin);
-		$this->plugin=$plugin;
-		$this->setAliases(["p"]);
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+	    {
+	  parent::__construct($name, $description);
+	  parent::setAliases(["party"]);
+	    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player instanceof Player){
 			return;
@@ -87,7 +88,7 @@ class PartyCommand extends PluginCommand{
 				$player->sendMessage("§cYou are already in a party.");
 				return;
 			}
-			if($player->getLevel()->getName()!=Core::LOBBY){
+			if($player->getWorld()->getName()!=Core::LOBBY){
 				$player->sendMessage("§cYou cannot create a party here.");
 				return;
 			}

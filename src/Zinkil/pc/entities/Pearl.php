@@ -9,13 +9,13 @@ use pocketmine\entity\projectile\Projectile;
 use pocketmine\event\entity\ProjectileHitEvent;
 use pocketmine\event\entity\ProjectileHitEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\level\Level;
+use pocketmine\world\World;
 use pocketmine\network\mcpe\protocol\LevelEventPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\level\sound\EndermanTeleportSound;
 use pocketmine\math\RayTraceResult;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\utils\Random;
 use pocketmine\level\particle\FlameParticle;
 use Zinkil\pc\Core;
@@ -84,7 +84,7 @@ class Pearl extends Projectile{
 	public function entityBaseTick(int $tickDiff=1):bool{
 		$hasUpdate=parent::entityBaseTick($tickDiff);
 		$owner=$this->getOwningEntity();
-		//$this->getLevel()->addParticle(new FlameParticle($this->asVector3()->add(0,0.5,0)), $this->getLevel()->getPlayers());
+		//$this->getWorld()->addParticle(new FlameParticle($this->asVector3()->add(0,0.5,0)), $this->getWorld()->getPlayers());
 		if($owner===null or !$owner->isAlive() or $owner->isClosed() or $this->isCollided){
 			$this->flagForDespawn();
 		}

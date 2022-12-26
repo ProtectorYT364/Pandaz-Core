@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\handlers;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use Zinkil\pc\Core;
 use Zinkil\pc\Utils;
@@ -262,7 +262,7 @@ class DatabaseHandler{
 	public function setTotalXp($player, $int){
 		$this->plugin->main->exec("UPDATE levels SET totalxp='$int' WHERE player='".Utils::getPlayerName($player)."'");
 	}
-	public function getLevel($player){
+	public function getWorld($player){
 		$query=$this->plugin->main->query("SELECT level FROM levels WHERE player='".Utils::getPlayerName($player)."';");
 		$result=$query->fetchArray(SQLITE3_ASSOC);
 		return (int) $result["level"];
@@ -367,11 +367,13 @@ class DatabaseHandler{
 	public function getKills($player){
 		$query=$this->plugin->main->query("SELECT kills FROM essentialstats WHERE player='".Utils::getPlayerName($player)."';");
 		$result=$query->fetchArray(SQLITE3_ASSOC);
+        if($result == false) return 0;
 		return (int) $result["kills"];
 	}
 	public function getDeaths($player){
 		$query=$this->plugin->main->query("SELECT deaths FROM essentialstats WHERE player='".Utils::getPlayerName($player)."';");
 		$result=$query->fetchArray(SQLITE3_ASSOC);
+        if($result == false) return 0;
 		return (int) $result["deaths"];
 	}
 	public function getKdr($player){
@@ -462,7 +464,7 @@ class DatabaseHandler{
 		while($resultArr=$query->fetchArray(SQLITE3_ASSOC)){
 			$j=$i + 1;
 			$player=$resultArr['player'];
-			$val=$this->getLevel($player);
+			$val=$this->getWorld($player);
 			if(Utils::isShowInLeaderboardsEnabled($player)==true){
 				if($j===1){
 					$message.="§8#1 §7".$player." §8-§7 ".$val."\n"; 
@@ -479,7 +481,7 @@ class DatabaseHandler{
 				++$i;
 			}
 		}
-		return "§3You - ".$this->getLevel($viewer)."§r\n".$message;
+		return "§3You - ".$this->getWorld($viewer)."§r\n".$message;
 	}
 	public function topElo(string $viewer){
 		$query=$this->plugin->main->query("SELECT * FROM matchstats ORDER BY elo DESC LIMIT 10;");

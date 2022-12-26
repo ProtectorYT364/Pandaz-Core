@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
-use pocketmine\command\PluginCommand;
+use pocketmine\player\Player;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 use Zinkil\pc\tasks\onetime\RestartTask;
 
-class StopCommand extends PluginCommand{
+class StopCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("stop", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bRestart server command");
-		$this->setPermission("pc.command.stop");
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+		    {
+		  parent::__construct($name, $description);
+		  parent::setAliases(["stop"]);
+		    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player->hasPermission("pc.command.stop")){
 			$player->sendMessage("§cYou cannot execute this command.");

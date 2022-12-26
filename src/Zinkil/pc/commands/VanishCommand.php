@@ -3,22 +3,22 @@
 namespace Zinkil\pc\commands;
 
 use pocketmine\command\CommandSender;
-use pocketmine\command\PluginCommand;
-use pocketmine\Player;
+use pocketmine\command\Command;
+use pocketmine\player\Player;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 use Zinkil\pc\CPlayer;
 use Zinkil\pc\Utils;
 
-class VanishCommand extends PluginCommand{
+class VanishCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("vanish", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bEnable or disable vanish mode");
-		$this->setPermission("pc.command.vanish");
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+		    {
+		  parent::__construct($name, $description);
+		  parent::setAliases(["vanish"]);
+		    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player instanceof Player){
 			return;

@@ -4,22 +4,21 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
-use pocketmine\command\PluginCommand;
+use pocketmine\player\Player;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 
-class WhoCommand extends PluginCommand{
+class WhoCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("who", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bGet all information about a player");
-		$this->setPermission("pc.command.who");
-		$this->setAliases(["pinfo","playerinfo"]);
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+		    {
+		  parent::__construct($name, $description);
+		  parent::setAliases(["pinfo"]);
+		    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player->hasPermission("pc.command.who")){
 			$player->sendMessage("§cYou cannot execute this command.");
@@ -47,7 +46,7 @@ class WhoCommand extends PluginCommand{
 		$ip=$target->getAddress();
 		$cid=$target->getClientId();
 		$ping=$target->getPing();
-		$level=$target->getLevel()->getName();
+		$level=$target->getWorld()->getName();
 		$xuid=$target->getXuid();
 		$uniqueid=$target->getUniqueId();
 		$player->sendMessage("\n\n§bDisplay Name:§6 ".$displayname."\n§bIP:§6 ".$ip."\n§bClientID:§6 ".$cid."\n§bRank:§6 ".$rank."\n§bOP:§6 ".$op."\n§bDevice:§6 ".$device."\n§bOS:§6 ".$os."\n§bControls:§6 ".$controls."\n§bPing:§6 ".$ping."\n§bWorld:§6 ".$level."\n§bXuid:§6 ".$xuid."\n§bUnique ID:§6 ".$uniqueid."\n\n");

@@ -12,7 +12,7 @@ class MutesTask extends Task{
 	public function __construct(Core $plugin){
 		$this->plugin=$plugin;
 	}
-	public function onRun(int $tick):void{
+	public function onRun():void{
 		$query=$this->plugin->staff->query("SELECT * FROM mutes ORDER BY duration ASC;");
 		$result=$query->fetchArray(SQLITE3_ASSOC);
 		$now=time();

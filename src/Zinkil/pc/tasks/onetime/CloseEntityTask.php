@@ -17,7 +17,7 @@ class CloseEntityTask extends Task{
 		$this->plugin=$plugin;
 		$this->entity=$entity;
 	}
-	public function onRun(int $currentTick):void{
+	public function onRun():void{
 		if(!$this->entity->isClosed()){
 			$this->entity->close();
 		}

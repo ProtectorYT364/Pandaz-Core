@@ -17,7 +17,7 @@ class LoadLevelTask extends Task{
 		$this->plugin=$plugin;
 		$this->level=$level;
 	}
-	public function onRun(int $currentTick):void{
+	public function onRun():void{
 		if(Server::getInstance()->isLevelLoaded($this->level)) return;
 		Server::getInstance()->loadLevel($this->level);
 	}

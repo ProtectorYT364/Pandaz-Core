@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Zinkil\pc;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
-use pocketmine\level\Level;
+use pocketmine\world\World;
 use pocketmine\entity\Skin;
 use pocketmine\item\Item;
 use pocketmine\entity\Entity;
 use pocketmine\entity\projectile\Projectile;
-use pocketmine\level\Location;
+use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
 use pocketmine\block\Block;
 use pocketmine\entity\EntityIds;
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\level\Position;
+use pocketmine\world\Position;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\item\SplashPotion as DefaultSplashPotion;
@@ -88,11 +88,6 @@ class Utils{
 			if($event->isCancelled() or $player->getGamemode()===3){
 				$entity->kill();
 			}else{
-				$entity->spawnToAll();
-				$itemInHand=$player->getInventory()->getItemInHand();
-				if($itemInHand->getId()===Item::SPLASH_POTION){
-					$player->getInventory()->setItemInHand(Item::get(0));
-				}
 			}
 		}
 	}
@@ -165,7 +160,7 @@ class Utils{
 		}
 	}
 	public static function broadcastPacketToViewers(CPlayer $inPlayer, DataPacket $packet, ?callable $callable=null, ?array $viewers=null):void{
-		$viewers=$viewers ?? $inPlayer->getLevel()->getViewersForPosition($inPlayer->asVector3());
+		$viewers=$viewers ?? $inPlayer->getWorld()->getViewersForPosition($inPlayer->asVector3());
 		foreach($viewers as $viewer){
 			if($viewer->isOnline()){
 				if($callable!==null and !$callable($viewer, $packet)){
@@ -195,13 +190,13 @@ class Utils{
 	public static function hoursToTicks(int $hours):int{
 		return $hours * 72000;
 	}
-	public static function ticksToSeconds(int $tick):int{
+	public static function ticksToSeconds():int{
 		return intval($tick / 20);
 	}
-	public static function ticksToMinutes(int $tick):int{
+	public static function ticksToMinutes():int{
 		return intval($tick / 1200);
 	}
-	public static function ticksToHours(int $tick):int{
+	public static function ticksToHours():int{
 		return intval($tick / 72000);
 	}
 	public static function onChunkGenerated(Level $level, int $x, int $z, callable $callable):void{
@@ -303,7 +298,7 @@ class Utils{
 		if(is_null($player)) return;
 		$directionVector=$player->getDirectionVector();
 		$nbt=Entity::createBaseNBT($player->add(0, $player->getEyeHeight(), 0), $directionVector, $player->yaw, $player->pitch);
-		$entity=Entity::createEntity(ProjectileSplashPotion::class, $player->getLevel(), $nbt, $player);
+		$entity=Entity::createEntity(ProjectileSplashPotion::class, $player->getWorld(), $nbt, $player);
 		$entity->setMotion($entity->getMotion()->multiply(50));
 		if($entity instanceof Projectile){
 			$event=new ProjectileLaunchEvent($entity);
@@ -327,8 +322,8 @@ class Utils{
 	}
 	public static function initPlayer($player){
 		if(is_null($player)) return;
-		$ip=$player->getAddress();
-		$cid=$player->getClientId();
+		$ip=$player->getNetworkSession()->getIp();
+		//$cid=$player->getPlayerInfo()->getExtraData()["ClientRandomId"];
 		$pathstats=Core::getInstance()->getDataFolder()."playerdata/".self::getPlayerName($player).".yml";
 		if(!file_exists($pathstats)){
 			$datastats=array(
@@ -833,26 +828,6 @@ class Utils{
 		$player->sendSkin();
 		$player->setHasCape(false);
 	}
-	public static function customPots(Item $potion, Player $player, bool $animate=false){
-		$dir=$player->getDirectionVector();
-		$dx=$dir->getX();
-		$dz=$dir->getZ();
-		$controls=Core::getInstance()->getPlayerControls($player);
-		$potion->onClickAir($player, $player->getDirectionVector());
-		if(!$player->isCreative()){
-			$inventory=$player->getInventory();
-			$itemInHand=$player->getInventory()->getItemInHand();
-			if($potion->getId()===Item::SPLASH_POTION){
-				$inventory->setItem($inventory->getHeldItemIndex(), Item::get(0));
-			}
-		}
-		if($animate===true and $controls=="Touch"){
-			$packet=new AnimatePacket();
-			$packet->action=AnimatePacket::ACTION_SWING_ARM;
-			$packet->entityRuntimeId=$player->getId();
-			Core::getInstance()->getServer()->broadcastPacket($player->getLevel()->getPlayers(), $packet);
-		}
-	}
 	public static function generateRandomFloat($min, $max, $round=0){
 		if($min>$max){
 			$min=$max;
@@ -1047,85 +1022,28 @@ class Utils{
 		}
 		Core::getInstance()->getDatabaseHandler()->voteAccessCreate($player, $duration);
 	}
-	public static function throwItem(Item $item, $player, bool $animate=false){
-		$dir=$player->getDirectionVector();
-		$dx=$dir->getX();
-		$dz=$dir->getZ();
-		$item->onClickAir($player, $player->getDirectionVector());
-		if(!$player->isCreative()){
-			$inventory=$player->getInventory();
-			$itemInHand=$player->getInventory()->getItemInHand();
-			if($item->getId()===Item::SPLASH_POTION and $item instanceof DefaultSplashPotion){
-				$inventory->setItem($inventory->getHeldItemIndex(), Item::get(0));
-			}
-			if($item->getId()===Item::ENDER_PEARL and $item instanceof EnderPearl){
-				if($itemInHand->getCount() > 0){
-					$inventory->removeItem($itemInHand->pop());
-				}
-				if($itemInHand->getCount()===0){
-					$inventory->setItem($inventory->getHeldItemIndex(), Item::get(0));
-				}
-			}
-		}
-		if($animate===true){
-			$packet=new AnimatePacket();
-			$packet->action=AnimatePacket::ACTION_SWING_ARM;
-			$packet->entityRuntimeId=$player->getId();
-			Core::getInstance()->getServer()->broadcastPacket($player->getLevel()->getPlayers(), $packet);
-		}
-	}
-	public static function consumeItem(Item $item, $player){
-		$item->onClickAir($player, $player->getDirectionVector());
-		if(!$player->isCreative()){
-			$inventory=$player->getInventory();
-			$itemInHand=$player->getInventory()->getItemInHand();
-			if($item->getId()===Item::MUSHROOM_STEW and $item instanceof MushroomStew){
-				//$inventory->setItem($inventory->getHeldItemIndex(), Item::get(281));
-				$inventory->setItem($inventory->getHeldItemIndex(), Item::get(0));
-				$player->setHealth($player->getHealth() + 8);
-				$player->setFood($player->getMaxFood());
-			}
-		}
-	}
-	public static function instantPots($item, $player, bool $animate=false){
-		$inventory=$player->getInventory();
-		if($item===Item::SPLASH_POTION){
-			//$inventory->setItem($inventory->getHeldItemIndex(), Item::get(0));
-			$player->setHealth($player->getHealth() + 8);
-			
-			$colors=[new Color(0xf8, 0x24, 0x23)];
-			$player->getLevel()->broadcastLevelEvent($player->asVector3()->add($player->getDirectionVector()->x + 0.3, 1, 0), LevelEventPacket::EVENT_PARTICLE_SPLASH, Color::mix(...$colors)->toARGB());
-			$player->getLevel()->broadcastLevelSoundEvent($player->asVector3(), LevelSoundEventPacket::SOUND_GLASS);
-		}
-		if($animate===true){
-			$packet=new AnimatePacket();
-			$packet->action=AnimatePacket::ACTION_SWING_ARM;
-			$packet->entityRuntimeId=$player->getId();
-			Core::getInstance()->getServer()->broadcastPacket($player->getLevel()->getPlayers(), $packet);
-		}
-	}
 	public static function spawnParticle(Player $player, $particle, bool $ispreview=false){
 		switch($particle){
 			case 1:
 			if($ispreview===true){
 				$players=[$player];
-				$player->getlevel()->addParticle(new ExplodeParticle($player->asVector3()), $players);
-				$player->getlevel()->addParticle(new ExplodeParticle($player->asVector3()->add(1, 0, 0)), $players);
-				$player->getlevel()->addParticle(new ExplodeParticle($player->asVector3()->add(-1, 0, 0)), $players);
-				$player->getlevel()->addParticle(new ExplodeParticle($player->asVector3()->add(0, 1, 0)), $players);
-				$player->getlevel()->addParticle(new ExplodeParticle($player->asVector3()->add(0 , 0, 1)), $players);
-				$player->getlevel()->addParticle(new ExplodeParticle($player->asVector3()->add(0 , 0, -1)), $players);
+				$player->getWorld()->addParticle(new ExplodeParticle($player->asVector3()), $players);
+				$player->getWorld()->addParticle(new ExplodeParticle($player->asVector3()->add(1, 0, 0)), $players);
+				$player->getWorld()->addParticle(new ExplodeParticle($player->asVector3()->add(-1, 0, 0)), $players);
+				$player->getWorld()->addParticle(new ExplodeParticle($player->asVector3()->add(0, 1, 0)), $players);
+				$player->getWorld()->addParticle(new ExplodeParticle($player->asVector3()->add(0 , 0, 1)), $players);
+				$player->getWorld()->addParticle(new ExplodeParticle($player->asVector3()->add(0 , 0, -1)), $players);
 			}else{
-				$player->getlevel()->addParticle(new HugeExplodeParticle($player->asVector3()));
-				$player->getlevel()->addParticle(new HugeExplodeParticle($player->asVector3()->add(1, 0, 0)));
-				$player->getlevel()->addParticle(new HugeExplodeParticle($player->asVector3()->add(-1, 0, 0)));
-				$player->getlevel()->addParticle(new HugeExplodeParticle($player->asVector3()->add(0, 1, 0)));
-				$player->getlevel()->addParticle(new HugeExplodeParticle($player->asVector3()->add(0 , 0, 1)));
-				$player->getlevel()->addParticle(new HugeExplodeParticle($player->asVector3()->add(0 , 0, -1)));
+				$player->getWorld()->addParticle(new HugeExplodeParticle($player->asVector3()));
+				$player->getWorld()->addParticle(new HugeExplodeParticle($player->asVector3()->add(1, 0, 0)));
+				$player->getWorld()->addParticle(new HugeExplodeParticle($player->asVector3()->add(-1, 0, 0)));
+				$player->getWorld()->addParticle(new HugeExplodeParticle($player->asVector3()->add(0, 1, 0)));
+				$player->getWorld()->addParticle(new HugeExplodeParticle($player->asVector3()->add(0 , 0, 1)));
+				$player->getWorld()->addParticle(new HugeExplodeParticle($player->asVector3()->add(0 , 0, -1)));
 			}
 			break;
 			case 2:
-			$player->getLevel()->addParticle(new DustParticle($player->asVector3, 255, 10, 10), [$player]);
+			$player->getWorld()->addParticle(new DustParticle($player->asVector3, 255, 10, 10), [$player]);
 			default:
 			return;
 		}
@@ -1233,7 +1151,7 @@ class Utils{
 			return $result;
 			return;
 		}
-		$player=Server::getInstance()->getPlayer($player);
+		$player=Server::getInstance()->getPlayerExact($player);
 		if($player instanceof Player){
 			$result=$player;
 		}
@@ -1270,7 +1188,7 @@ class Utils{
 		foreach(Core::getInstance()->staticFloatingTexts as $id => $ft){
 			$title=Core::getInstance()->getStaticFloatingTexts()->getNested("$id.title");
 			$text=Core::getInstance()->getStaticFloatingTexts()->getNested("$id.text");
-			$level=Core::getInstance()->getServer()->getLevelByName(Core::getInstance()->getStaticFloatingTexts()->getNested("$id.level"));
+			$level=Core::getInstance()->getServer()->getWorldManager()->getWorldByName(Core::getInstance()->getStaticFloatingTexts()->getNested("$id.level"));
 			$ft->setTitle(Core::getInstance()->replaceProcess($player, $title));
 			$ft->setText(Core::getInstance()->replaceProcess($player, $text));
 			$level->addParticle($ft, [$player]);
@@ -1282,7 +1200,7 @@ class Utils{
 		foreach(Core::getInstance()->updatingFloatingTexts as $id => $ft){
 			$title=Core::getInstance()->getUpdatingFloatingTexts()->getNested("$id.title");
 			$text=Core::getInstance()->getUpdatingFloatingTexts()->getNested("$id.text");
-			$level=Core::getInstance()->getServer()->getLevelByName(Core::getInstance()->getUpdatingFloatingTexts()->getNested("$id.level"));
+			$level=Core::getInstance()->getServer()->getWorldManager()->getWorldByName(Core::getInstance()->getUpdatingFloatingTexts()->getNested("$id.level"));
 			$ft->setTitle(Core::getInstance()->replaceProcess($player, $title));
 			$ft->setText(Core::getInstance()->replaceProcess($player, $text));
 			$level->addParticle($ft, [$player]);
@@ -1386,8 +1304,8 @@ class Utils{
 		$lightning->motion=null;
 		$lightning->yaw=$player->getYaw();
 		$lightning->pitch=$player->getPitch();
-		$lightning->position=new Vector3($player->getX(), $player->getY(), $player->getZ());
-		Server::getInstance()->broadcastPacket($player->getLevel()->getPlayers(), $lightning);
+		$lightning->position=new Vector3($player->getLocation()->getX(), $player->getLocation()->getY(), $player->getLocation()->getZ());
+		Server::getInstance()->broadcastPackets($player->getWorld()->getPlayers(), [$lightning]);
 		
 		
 		self::impactSound($player);
@@ -1395,10 +1313,10 @@ class Utils{
 	public static function knockbackPlayer($player){
 		$player=self::getPlayer($player);
 		if(is_null($player)) return;
-		$level=$player->getLevel();
-		$x=$player->getX();
-		$y=$player->getY();
-		$z=$player->getZ();
+		$level=$player->getWorld();
+		$x=$player->getLocation()->getX();
+		$y=$player->getLocation()->getY();
+		$z=$player->getLocation()->getZ();
 		$dir=$player->getDirectionVector();
 		$dx=$dir->getX();
 		$dz=$dir->getZ();
@@ -1413,25 +1331,25 @@ class Utils{
 		if(is_null($player)) return;
 		$sound=new PlaySoundPacket();
 		$sound->soundName="ambient.weather.lightning.impact";
-		$sound->x=$player->getX();
-		$sound->y=$player->getY();
-		$sound->z=$player->getZ();
+		$sound->x=$player->getLocation()->getX();
+		$sound->y=$player->getLocation()->getY();
+		$sound->z=$player->getLocation()->getZ();
 		$sound->volume=1;
 		$sound->pitch=1;
-		Server::getInstance()->broadcastPacket($player->getLevel()->getPlayers(), $sound);
+		Server::getInstance()->broadcastPackets($player->getWorld()->getPlayers(), [$sound]);
 	}
 	public static function teleportSound($player){
 		$player=self::getPlayer($player);
 		if(is_null($player)) return;
 		$sound=new PlaySoundPacket();
 		$sound->soundName="mob.endermen.portal";
-		$sound->x=$player->getX();
-		$sound->y=$player->getY();
-		$sound->z=$player->getZ();
+		$sound->x=$player->getLocation()->getX();
+		$sound->y=$player->getLocation()->getY();
+		$sound->z=$player->getLocation()->getZ();
 		$sound->volume=10;
 		$sound->pitch=1;
-		foreach($player->getLevel()->getPlayers() as $players){
-			$players->dataPacket($sound);
+		foreach($player->getWorld()->getPlayers() as $players){
+			$players->getNetworkSession()->sendDataPacket($sound);
 		}
 	}
 	public static function harpSound($player, $pitch){
@@ -1439,13 +1357,13 @@ class Utils{
 		if(is_null($player)) return;
 		$sound=new PlaySoundPacket();
 		$sound->soundName="note.harp";
-		$sound->x=$player->getX();
-		$sound->y=$player->getY();
-		$sound->z=$player->getZ();
+		$sound->x=$player->getLocation()->getX();
+		$sound->y=$player->getLocation()->getY();
+		$sound->z=$player->getLocation()->getZ();
 		$sound->volume=1;
 		$sound->pitch=$pitch;
-		foreach($player->getLevel()->getPlayers() as $players){
-			$players->dataPacket($sound);
+		foreach($player->getWorld()->getPlayers() as $players){
+			$players->getNetworkSession()->sendDataPacket($sound);
 		}
 	}
 	public static function clickSound($player){
@@ -1459,7 +1377,7 @@ class Utils{
 		$sound->evid=1001;
 		$sound->position=$v3;
 		$sound->data=1001;
-		$player->dataPacket($sound);
+		$player->sendDataPacket($sound);
 	}
 	public static function tesstttSound($player, $id){
 		$player=self::getPlayer($player);
@@ -1472,7 +1390,7 @@ class Utils{
 		$sound->evid=$id;
 		$sound->position=$v3;
 		$sound->data=$id;
-		$player->dataPacket($sound);
+		$player->sendDataPacket($sound);
 	}
 	public static function shootSound($player){
 		$player=self::getPlayer($player);
@@ -1485,33 +1403,33 @@ class Utils{
 		$sound->evid=1009;
 		$sound->position=$v3;
 		$sound->data=1009;
-		$player->dataPacket($sound);
+		$player->sendDataPacket($sound);
 	}
 	public static function witherSpawnSound($player){
 		$player=self::getPlayer($player);
 		if(is_null($player)) return;
 		$sound=new PlaySoundPacket();
 		$sound->soundName="mob.wither.spawn";
-		$sound->x=$player->getX();
-		$sound->y=$player->getY();
-		$sound->z=$player->getZ();
+		$sound->x=$player->getLocation()->getX();
+		$sound->y=$player->getLocation()->getY();
+		$sound->z=$player->getLocation()->getZ();
 		$sound->volume=0.1;
 		$sound->pitch=1;
-		$player->dataPacket($sound);
+		$player->sendDataPacket($sound);
 	}
 	public static function triHitSound($player){
 		$player=self::getPlayer($player);
 		if(is_null($player)) return;
 		$sound=new PlaySoundPacket();
 		$sound->soundName="item.trident.hit";
-		$sound->x=$player->getX();
-		$sound->y=$player->getY();
-		$sound->z=$player->getZ();
+		$sound->x=$player->getLocation()->getX();
+		$sound->y=$player->getLocation()->getY();
+		$sound->z=$player->getLocation()->getZ();
 		$sound->volume=0.7;
 		$sound->pitch=1;
-		foreach($player->getLevel()->getPlayers() as $players){
+		foreach($player->getWorld()->getPlayers() as $players){
 			//if($players==$player and $player!==null){
-				$players->dataPacket($sound);
+				$players->sendDataPacket($sound);
 			//}
 		}
 	}
@@ -1532,11 +1450,11 @@ class Utils{
 		$packet->position=$v3;
 		$packet->sound=$sound;
 		if($all===true){
-			foreach($player->getLevel()->getPlayers() as $players){
-				$players->dataPacket($packet);
+			foreach($player->getWorld()->getPlayers() as $players){
+				$players->getNetworkSession()->sendDataPacket($packet);
 			}
 		}else{
-			$player->dataPacket($packet);
+			$player->getNetworkSession()->sendDataPacket($packet);
 		}
 	}
 	public static function playSoundAbove($player, int $sound, $all=false){
@@ -1550,11 +1468,11 @@ class Utils{
 		$packet->position=$v3;
 		$packet->sound=$sound;
 		if($all===true){
-			foreach($player->getLevel()->getPlayers() as $players){
-				$players->dataPacket($packet);
+			foreach($player->getWorld()->getPlayers() as $players){
+				$players->getNetworkSession()->sendDataPacket($packet);
 			}
 		}else{
-			$player->dataPacket($packet);
+			$player->getNetworkSession()->sendDataPacket($packet);
 		}
 	}
 	public static function getChatFormat($rank){
@@ -1756,9 +1674,9 @@ class Utils{
 				if(self::arr_contains_keys($posArr, 'yaw', 'pitch')){
 					$yaw=floatval(intval($posArr['yaw']));
 					$pitch=floatval(intval($posArr['pitch']));
-					$result=new Location($x, $y, $z, $yaw, $pitch, $server->getLevelByName($level));
+					$result=new Location($x, $y, $z, $yaw, $pitch, $server->getWorldByName($level));
 				}else{
-					$result=new Position($x, $y, $z, $server->getLevelByName($level));
+					$result=new Position($x, $y, $z, $server->getWorldByName($level));
 				}
 			}
 		}
@@ -1766,10 +1684,10 @@ class Utils{
 	}
 	public static function isALevel($level, bool $loaded=true):bool{
 		$server=Server::getInstance();
-		$lvl=($level instanceof Level) ? $level:$server->getLevelByName($level);
+		$lvl=($level instanceof Level) ? $level:$server->getWorldByName($level);
 		$result=null;
 		if(is_string($level) and $loaded===false){
-			$levels=self::getLevelsFromFolder();
+			$levels=self::getWorldsFromFolder();
 			if(in_array($level, $levels)){
 				$result=true;
 			}
@@ -1781,7 +1699,7 @@ class Utils{
 		}
 		return $result;
 	}
-	public static function getLevelsFromFolder(){
+	public static function getWorldsFromFolder(){
 		$index=self::str_indexOf("/plugin_data", Core::getInstance()->getDataFolder());
 		$substr=substr(Core::getInstance()->getDataFolder(), 0, $index);
 		$worlds=$substr . "/worlds";

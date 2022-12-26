@@ -4,22 +4,21 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\Commands;
 
-use pocketmine\Player;
-use pocketmine\command\PluginCommand;
+use pocketmine\player\Player;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 
-class AnnounceCommand extends PluginCommand{
+class AnnounceCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("announce", $plugin);
-		$this->plugin=$plugin;
-		$this->setDescription("§bSend an announcment to all players");
-		$this->setPermission("pc.command.announce");
-		$this->setAliases(["ano"]);
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+    {
+        parent::__construct($name, $description);
+        parent::setAliases(["announce"]);
+    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if(!$player->hasPermission("pc.command.announce")){
 			$player->sendMessage("§cYou cannot execute this command.");

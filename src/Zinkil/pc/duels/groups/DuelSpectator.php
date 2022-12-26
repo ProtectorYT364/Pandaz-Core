@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\duels\groups;
 
-use pocketmine\level\Position;
-use pocketmine\Player;
+use pocketmine\world\Position;
+use pocketmine\player\Player;
 use Zinkil\pc\Core;
 use Zinkil\pc\Utils;
 

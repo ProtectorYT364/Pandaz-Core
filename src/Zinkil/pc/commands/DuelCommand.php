@@ -4,21 +4,23 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\commands;
 
-use pocketmine\Player;
 use pocketmine\Server;
-use pocketmine\command\PluginCommand;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\player\Player;
+use pocketmine\lang\Translatable;
 use Zinkil\pc\Core;
 use Zinkil\pc\duels\DuelInvite;
 
-class DuelCommand extends PluginCommand{
+class DuelCommand extends Command{
 	
 	private $plugin;
 	
-	public function __construct(Core $plugin){
-		parent::__construct("duel", $plugin);
-		$this->plugin=$plugin;
-	}
+	public function __construct(string $name, Translatable|string $description = "")
+    {
+        parent::__construct($name, $description);
+        parent::setAliases(["duel"]);
+    }
 	public function execute(CommandSender $player, string $commandLabel, array $args){
 		if($player->isTagged()){
 			$player->sendMessage("§cYou cannot use this command while in combat.");
@@ -43,7 +45,7 @@ class DuelCommand extends PluginCommand{
 			return;
 		}
 		$target=$this->plugin->getServer()->getPlayer($args[0]);
-		if($target->getLevel()->getName()!=Core::LOBBY){
+		if($target->getWorld()->getName()!=Core::LOBBY){
 			$player->sendMessage("§cThis player cannot duel at the moment.");
 			return;
 		}

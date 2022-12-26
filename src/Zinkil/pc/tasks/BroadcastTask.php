@@ -13,7 +13,7 @@ class BroadcastTask extends Task{
 		$this->plugin=$plugin;
 		$this->line=-1;
 	}
-	public function onRun(int $tick):void{
+	public function onRun():void{
 		$cast=[
 		$this->plugin->getCastPrefix()."Join our official discord at ".$this->plugin->getDiscord().".",
 		$this->plugin->getCastPrefix()."If you want a Youtube rank (300+) or a Famous rank (800+) make a video on server and tell me in discord server ".$this->plugin->getDiscord().".",

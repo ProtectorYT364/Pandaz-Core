@@ -6,9 +6,9 @@ namespace Zinkil\pc\listeners;
 
 use pocketmine\event\Listener;
 use pocketmine\Server;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\item\Item;
-use pocketmine\level\Location;
+use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
 use pocketmine\event\entity\EntityDamageEvent;
 use Zinkil\pc\Core;
@@ -42,14 +42,14 @@ class AntiCheatListener implements Listener{
 			$distance=$damagerpos->distance($playerpos);
 			$approxdist=7;
 			$maxdist=8;
-			if($damager->getPing() >= 230){
-				$approxdist=$damager->getPing() / 34;
-				if($damager->getPing() >= 500){
-					$approxdist=$damager->getPing() / 50;
+			if($damager->getNetworkSession()->getPing() >= 230){
+				$approxdist=$damager->getNetworkSession()->getPing() / 34;
+				if($damager->getNetworkSession()->getPing() >= 500){
+					$approxdist=$damager->getNetworkSession()->getPing() / 50;
 				}
 			}
 			if($distance > $maxdist){
-				$event->setCancelled();
+				$event->cancel();
 			}
 			if($maxdist >= $distance and $distance >= $approxdist){
 				$damager->addReachFlag();
@@ -76,19 +76,19 @@ class AntiCheatListener implements Listener{
 			$cps=$this->plugin->getClickHandler()->getCps($damager);
 			$approxcps=23;
 			$maxcps=30;
-			if($damager->getPing() >= 230){
+			if($damager->getNetworkSession()->getPing() >= 230){
 				$approxcps=25;
-				if($damager->getPing() >= 500){
+				if($damager->getNetworkSession()->getPing() >= 500){
 					$approxcps=27;
 				}
 			}
-			if(!$damager->isOp()){
+			if(!Server::getInstance()->isOp($damager->getName())){
 				if($cps >= 65){
 					$damager->kick("§cYour CPS is too high.\n§fVia Anti-Cheat", false);
 				}
 			}
 			if($cps >= $maxcps){
-				$event->setCancelled();
+				$event->cancel();
 			}
 			if($cps >= $approxcps){
 				$damager->addCpsFlag();

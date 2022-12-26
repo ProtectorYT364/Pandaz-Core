@@ -1,8 +1,8 @@
 name: Pandaz
 main: Zinkil\pc\Core
-version: 1.0.0
-api: 3.0.0
-author: Zinkil
+version: 1.0.1
+api: 4.0.0
+author: [OwONico, ReVape, Zinkil]
 description: "The Official Core Of The MCPE Practice Server Pandaz"
 
 permissions:

@@ -13,7 +13,7 @@ class MotdTask extends Task{
 		$this->plugin=$plugin;
 		$this->line=-1;
 	}
-	public function onRun(int $tick):void{
+	public function onRun():void{
 		$motd=[
 		"§l§bPANDAZ » §3Best WW",
 		"§l§eNEW » §dBot Duels",

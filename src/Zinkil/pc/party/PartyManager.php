@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\party;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use Zinkil\pc\Core;
 use Zinkil\pc\Utils;
 use Zinkil\pc\party\{Party, PartyInvite};

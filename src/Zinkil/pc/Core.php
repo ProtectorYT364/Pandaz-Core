@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Zinkil\pc;
 
 use pocketmine\plugin\PluginBase;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\utils\Config;
 use pocketmine\entity\Entity;
+use pocketmine\entity\EntityFactory;
+use pocketmine\data\bedrock\EntityLegacyIds;
+use pocketmine\entity\EntityDataHelper;
 use pocketmine\item\ItemFactory;
-use pocketmine\level\particle\FloatingTextParticle;
+use pocketmine\world\particle\FloatingTextParticle;
 use pocketmine\math\Vector3;
 use pocketmine\utils\TextFormat;
 use pocketmine\nbt\tag\ByteArrayTag;
@@ -29,7 +32,7 @@ use Zinkil\pc\bots\{EasyBot, MediumBot, HardBot, HackerBot};
 use Zinkil\pc\data\Provider;
 use Zinkil\pc\multiver\PMPlayer;
 use Zinkil\pc\{Forms, StaffUtils};
-
+use SQLite3;
 class Core extends PluginBase{
 	
 	public $globalMute=false;
@@ -136,17 +139,22 @@ class Core extends PluginBase{
 		@mkdir($this->getDataFolder()."playerdata/");
 		$this->updatingFloatingText=new Config($this->getDataFolder()."updatingfloatingtexts.yml", Config::YAML);
 		$this->staticFloatingText=new Config($this->getDataFolder()."staticfloatingtexts.yml", Config::YAML);
+       $this->getServer()->getWorldManager()->loadWorld("lobby");
 
-		$this->getServer()->loadLevel("lobby");
-		$this->getServer()->loadLevel("nodebuff");
-		$this->getServer()->loadLevel("gapple");
-		$this->getServer()->loadLevel("combo");
-		$this->getServer()->loadLevel("fist");
-		$this->getServer()->loadLevel("resistance");
-		$this->getServer()->loadLevel("sumoffa");
-		$this->getServer()->loadLevel("BuildFFA");
+		$this->getServer()->getWorldManager()->loadWorld("nodebuff");
 
-		foreach($this->getServer()->getLevels() as $levels){
+		$this->getServer()->getWorldManager()->loadWorld("gapple");
+
+		$this->getServer()->getWorldManager()->loadWorld("combo");
+
+		$this->getServer()->getWorldManager()->loadWorld("fist");
+
+		$this->getServer()->getWorldManager()->loadWorld("resistance");
+
+		$this->getServer()->getWorldManager()->loadWorld("sumoffa");
+
+		$this->getServer()->getWorldManager()->loadWorld("BuildFFA");
+		foreach($this->getServer()->getWorldManager()->getWorlds() as $levels){
 			foreach($levels->getEntities() as $entity){
 				$entity->close();
 			}
@@ -158,15 +166,16 @@ class Core extends PluginBase{
 		$this->setHandlers();
 		$this->setCommands();
 		$this->setTasks();
+        /*
 		$this->setEntities();
-		$this->setItems();
+		$this->setItems();*/
 		$this->loadUpdatingFloatingTexts();
 		$this->loadStaticFloatingTexts();
 		
 		//$this->provider=new Provider($this);
 		//$this->provider->open();
-		
-		$this->main = new SQLite3($this->getDataFolder()."Pandaz.db");
+        
+		$this->main= new SQLite3($this->getDataFolder()."Pandaz.db");
 		$this->main->exec("CREATE TABLE IF NOT EXISTS rank (player TEXT PRIMARY KEY, rank TEXT);");
 		$this->main->exec("CREATE TABLE IF NOT EXISTS essentialstats (player TEXT PRIMARY KEY, kills INT, deaths INT, kdr REAL, killstreak INT, bestkillstreak INT, coins INT, elo INT);");
 		$this->main->exec("CREATE TABLE IF NOT EXISTS matchstats (player TEXT PRIMARY KEY, elo INT, wins INT, losses INT, elogained INT, elolost INT);");
@@ -174,7 +183,7 @@ class Core extends PluginBase{
 		$this->main->exec("CREATE TABLE IF NOT EXISTS temporaryranks (player TEXT PRIMARY KEY, temprank TEXT, duration INT, oldrank TEXT);");
 		$this->main->exec("CREATE TABLE IF NOT EXISTS voteaccess (player TEXT PRIMARY KEY, bool TEXT, duration INT);");
 		$this->main->exec("CREATE TABLE IF NOT EXISTS levels (player TEXT PRIMARY KEY, level INT, neededxp INT, currentxp INT, totalxp INT);");
-		$this->staff = new SQLite3($this->getDataFolder()."PandazStaff.db");
+		$this->staff= new SQLite3($this->getDataFolder()."PandazStaff.db");
 		$this->staff->exec("CREATE TABLE IF NOT EXISTS mutes (player TEXT PRIMARY KEY, reason TEXT, duration INT, staff TEXT, date TEXT);");
 		$this->staff->exec("CREATE TABLE IF NOT EXISTS temporarybans (player TEXT PRIMARY KEY, reason TEXT, duration INT, staff TEXT, givenpoints INT, date TEXT);");
 		$this->staff->exec("CREATE TABLE IF NOT EXISTS permanentbans (player TEXT PRIMARY KEY, reason TEXT, staff TEXT, date TEXT);");
@@ -188,16 +197,14 @@ class Core extends PluginBase{
 
 		$this->getServer()->getNetwork()->setName("§l§bPandaz §f[1.17]");
 	}
-	public function onDisable(){
-		foreach($this->getServer()->getLevels() as $levels){
+	public function onDisable(): void {
+		foreach($this->getServer()->getWorldManager()->getWorlds() as $levels){
 			foreach($levels->getEntities() as $entity){
 				$entity->close();
 			}
 		}
 		$this->getLogger()->info("Entities cleared...");
-		$players=$this->getServer()->getLoggedInPlayers();
-		if(sizeof($players)===0) return;
-		Utils::transferPlayers($players);
+		
 	}
 	public function doesFileExist($filename):bool{
 		$result=file_exists($this->getFile()."resources/".$filename.".png");
@@ -273,42 +280,41 @@ class Core extends PluginBase{
 	}
 	public function setCommands(){
 		$map=$this->getServer()->getCommandMap();
-		$map->register("kickall", new KickAllCommand($this));
-		$map->register("anticheat", new AntiCheatCommand($this));
-		$map->register("reset", new ResetStatsCommand($this));
-		$map->register("setclantag", new SetClanTagCommand($this));
-		$map->register("reply", new ReplyCommand($this));
-		$map->register("forcekit", new ForceKitCommand($this));
-		$map->register("kit", new KitCommand($this));
-		$map->register("nick", new NickCommand($this));
-		$map->register("mute", new MuteCommand($this));
-		$map->register("tban", new TempBanCommand($this));
-		$map->register("pban", new PermBanCommand($this));
-		$map->register("kill", new KillCommand($this));
-		$map->register("coords", new CoordsCommand($this));
-		$map->register("messages", new MessagesCommand($this));
-		$map->register("vanish", new VanishCommand($this));
-		$map->register("kill", new KillCommand($this));
-		$map->register("party", new PartyCommand($this));
-		$map->register("fly", new FlyCommand($this));
-		$map->register("stop", new StopCommand($this));
-		$map->register("exec", new ExecCommand($this));
-		$map->register("tpall", new TpallCommand($this));
-		$map->register("alias", new AliasCommand($this));
-		$map->register("ping", new PingCommand($this));
-		$map->register("forcerank", new ForceRankCommand($this));
-		$map->register("manage", new ManageCommand($this));
-		$map->register("online", new OnlineCommand($this));
-		$map->register("disguise", new DisguiseCommand($this));
-		$map->register("mutechat", new MuteChatCommand($this));
-		$map->register("who", new WhoCommand($this));
-		$map->register("staff", new StaffCommand($this));
-		$map->register("hub", new HubCommand($this));
-		$map->register("whisper", new WhisperCommand($this));
-		$map->register("announce", new AnnounceCommand($this));
-		$map->register("freeze", new FreezeCommand($this));
-		$map->register("rank", new RankCommand($this));
-		$map->register("gm", new GamemodeCommand($this));
+		$map->register("kickall", new KickAllCommand("kickall", "Kick all online players", $this));
+		$map->register("anticheat", new AntiCheatCommand("anticheat", "Toggle anticheat message", $this));
+		$map->register("reset", new ResetStatsCommand("reset", "reset player stats", $this));
+		$map->register("setclantag", new SetClanTagCommand("setclantag", "Set clan tag", $this));
+		$map->register("reply", new ReplyCommand("reply", "Reply command", $this));
+		$map->register("forcekit", new ForceKitCommand("forcekit", "Force kit command", $this));
+		$map->register("kit", new KitCommand("kit", "kit command", $this));
+		$map->register("nick", new NickCommand("nick", "Change nickname of a player", $this));
+		$map->register("mute", new MuteCommand("mute", "Mute a player", $this));
+		$map->register("tban", new TempBanCommand("tban", "Tempban a player", $this));
+		$map->register("pban", new PermBanCommand("pban", "Permban a player", $this));
+		$map->register("kill", new KillCommand("kill", "Kill a player", $this));
+		$map->register("coords", new CoordsCommand("coords", "Toggle coordinates", $this));
+		$map->register("messages", new MessagesCommand("message", "message a player", $this));
+		$map->register("vanish", new VanishCommand("vanish", "vanish a player", $this));
+		$map->register("party", new PartyCommand("party", "Create a party", $this));
+		$map->register("fly", new FlyCommand("fly", "fly command", $this));
+		$map->register("stop", new StopCommand("stop", "stop command", $this));
+		$map->register("exec", new ExecCommand("exec", "exect command", $this));
+		$map->register("tpall", new TpallCommand("tpall", "Teleports all player", $this));
+		$map->register("alias", new AliasCommand("alias", "alias a player", $this));
+		$map->register("ping", new PingCommand("mute", "Ping command", $this));
+		$map->register("forcerank", new ForceRankCommand("forcerank", "force rank a player", $this));
+		$map->register("manage", new ManageCommand("manage", "manage command", $this));
+		$map->register("online", new OnlineCommand("online", "online command", $this));
+		$map->register("disguise", new DisguiseCommand("disguise", "disguise command", $this));
+		$map->register("mutechat", new MuteChatCommand("mutechat", "Mute a chat", $this));
+		$map->register("who", new WhoCommand("who", "Who command", $this));
+		$map->register("staff", new StaffCommand("staff", "Staff command", $this));
+		$map->register("hub", new HubCommand("hub", "Teleports to hub", $this));
+		$map->register("whisper", new WhisperCommand("whisper", "whisper a player", $this));
+		$map->register("announce", new AnnounceCommand("announce", "Broadcast message", $this));
+		$map->register("freeze", new FreezeCommand("freeze", "freeze a player", $this));
+		$map->register("rank", new RankCommand("rank", "rank command", $this));
+		$map->register("gm", new GamemodeCommand("gm", "change gamemode", $this));
 	}
 	public function setTasks(){
 		$map=$this->getScheduler();
@@ -330,8 +336,23 @@ class Core extends PluginBase{
 		$map->scheduleRepeatingTask(new NameTagTask($this), 5);
 		$map->scheduleRepeatingTask(new VanishTask($this), 5);
 	}
+    /*
 	public function setEntities(){
-		Entity::registerEntity(FastPotion::class, true, ["FastPotion"]);
+	  EntityFactory::getInstance()->register(FastPotion::class, function(World $world, CompoundTag $nbt) : FastPotion {
+      return new FastPotion(EntityDataHelper::parseLocation($nbt, $world), $nbt);
+        }, ["FastPotion"]);
+    EntityFactory::getInstance()->register(DefaultPotion::class, function(World $world, CompoundTag $nbt) : DefaultPotion {
+      return new DefaultPotion(EntityDataHelper::parseLocation($nbt, $world), $nbt);
+        }, ["DefaultPotion"]);
+    ItemFactory::getInstance()->register(new Rod(new ItemIdentifier(ItemIds::FISHING_ROD, 0)), true);
+    EntityFactory::getInstance()->register(EnderpearlEntity::class, function(World $world, CompoundTag $nbt) : EnderpearlEntity {
+    return new EnderpearlEntity(EntityDataHelper::parseLocation($nbt, $world), $nbt);
+        }, ["EnderpearlEntity"]);
+    ItemFactory::getInstance()->register(new Rod(new ItemIdentifier(ItemIds::FISHING_ROD, 0)), true);
+    EntityFactory::getInstance()->register(FishingHook::class, function(World $world, CompoundTag $nbt) : FishingHook{
+    return new FishingHook(EntityDataHelper::parseLocation($nbt, $world), null, $nbt);
+      }, ["Fishing Hook", "minecraft:fishing_hook"], EntityLegacyIds::FISHING_HOOK);
+		/*Entity::registerEntity(FastPotion::class, true, ["FastPotion"]);
 		Entity::registerEntity(DefaultPotion::class, true, ["DefaultPotion"]);
 		Entity::registerEntity(Pearl::class, true, ["CPPearl"]);
 		Entity::registerEntity(Hook::class, false, ["FishingHook", "minecraft:fishing_rod"]);
@@ -344,7 +365,7 @@ class Core extends PluginBase{
 	}
 	public function setItems(){
 		ItemFactory::registerItem(new Rod(), true);
-	}
+	}*/
 	public function disableCommands(){
 		$map=$this->getServer()->getCommandMap();
 		$map->unregister($map->getCommand("kill"));

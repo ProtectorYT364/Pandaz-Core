@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Zinkil\pc\handlers;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\entity\Human;
-use pocketmine\level\Level;
-use pocketmine\level\Location;
+use pocketmine\world\World;
+use pocketmine\entity\Location;
 use Zinkil\pc\arenas\DuelArena;
 use Zinkil\pc\duels\groups\DuelGroup;
 use Zinkil\pc\duels\groups\PartyDuelGroup;
@@ -44,10 +44,10 @@ class DuelHandler{
 		$arena=$this->findRandomArena($queue);
 		if($this->plugin->getDuelHandler()->isAnArenaOpen($queue)){
 			if($arena!==null){
-				$name=$arena->getLevel()->getName();
-				$level=Server::getInstance()->getLevelByName($name);
+				$name=$arena->getWorld()->getName();
+				$level=Server::getInstance()->getWorldByName($name);
 				//if(!Server::getInstance()->isLevelLoaded($name)) return;
-				$world=Server::getInstance()->getLevelByName($name);
+				$world=Server::getInstance()->getWorldByName($name);
 				if($world instanceof Level) $world->setAutoSave(false);
 				if(count($players) >= 2){
 					$duel=new PartyDuelGroup($party, $players, $queue, $allowspecs, $arena->getName());
@@ -66,7 +66,7 @@ class DuelHandler{
 	}
 	public function createBotDuel($player, string $type){
 		$arena=$this->findRandomArena(strtolower($type));
-		foreach($arena->getLevel()->getEntities() as $entity){
+		foreach($arena->getWorld()->getEntities() as $entity){
 			if($entity instanceof Human and !$entity instanceof Player){
 				$this->plugin->getLogger()->notice("Bot entity cleared.");
 				$entity->close();
@@ -76,10 +76,10 @@ class DuelHandler{
 			$player->sendMessage("§cThere are no open arenas, please wait.");
 			return;
 		}else{
-			$name=$arena->getLevel()->getName();
-			$level=Server::getInstance()->getLevelByName($name);
+			$name=$arena->getWorld()->getName();
+			$level=Server::getInstance()->getWorldByName($name);
 			if(!Server::getInstance()->isLevelLoaded($name)) return;
-			$world=Server::getInstance()->getLevelByName($name);
+			$world=Server::getInstance()->getWorldByName($name);
 			if($world instanceof Level) $world->setAutoSave(false);
 			$x=$arena->getOpponentPos()->x;
 			$y=$arena->getOpponentPos()->y;
@@ -111,7 +111,7 @@ class DuelHandler{
 				$bot->setHealth(20);
 				
 				$duelarena=$duel->getArena();
-				$duellevel=$arena->getLevel();
+				$duellevel=$arena->getWorld();
 				$isPlayer=$duel->isPlayer($p->getName());
 				
 				$playerpos=$arena->getPlayerPos();
@@ -392,16 +392,16 @@ class DuelHandler{
 	
 	public function startDuel(MatchedGroup $group):void{
 		$arena=$this->findRandomArena($group->getQueue());
-		foreach($arena->getLevel()->getEntities() as $entity){
+		foreach($arena->getWorld()->getEntities() as $entity){
 			if($entity instanceof Human and !$entity instanceof Player){
 				$this->plugin->getLogger()->notice("Bot entity cleared.");
 				$entity->close();
 			}
 		}
-		$name=$arena->getLevel()->getName();
-		$level=Server::getInstance()->getLevelByName($name);
+		$name=$arena->getWorld()->getName();
+		$level=Server::getInstance()->getWorldByName($name);
 		if(!Server::getInstance()->isLevelLoaded($name)) return;
-		$world=Server::getInstance()->getLevelByName($name);
+		$world=Server::getInstance()->getWorldByName($name);
 		if($world instanceof Level){
 			//$this->plugin->getLogger()->notice("is instanceof level");
 			$world->setAutoSave(false);
@@ -426,7 +426,7 @@ class DuelHandler{
 				$o->setNameTag("§c".$o->getDisplayName());
 				
 				$duelarena=$duel->getArena();
-				$duellevel=$arena->getLevel();
+				$duellevel=$arena->getWorld();
 				$isPlayer=$duel->isPlayer($p->getName());
 				$isOpponent=$duel->isOpponent($o->getName());
 				
